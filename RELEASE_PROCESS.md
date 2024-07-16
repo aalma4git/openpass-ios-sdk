@@ -6,7 +6,8 @@ Releases are performed via [GitHub Releases](https://docs.github.com/en/reposito
 
 1. Confirm `sdkVersion` in `OpenPassManager` is expected version.
 2. Use GitHub Releases to create tag matching `sdkVersion` in `OpenPassManager` and publish release.
-3. Update `sdkVersion` in `OpenPassManger` to next minor version to support future development and merge into `main`.
+3. Update `sdkVersion` in `OpenPassManager` to next minor version to support future development and merge into `main`.
+4. Update `version` and `source.tag` in `OpenPass.podspec.json` to next match the new version number.
 
 ### Version Numbers
 

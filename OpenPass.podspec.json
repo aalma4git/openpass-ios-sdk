@@ -3,13 +3,13 @@
   "summary": "OpenPass SDK for iOS.",
   "homepage": "https://myopenpass.com/",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "authors": {
     "David Snabel-Caunt": "dave.snabel-caunt@thetradedesk.com"
   },
   "source": {
     "git": "https://github.com/openpass-sso/openpass-ios-sdk.git",
-    "tag": "1.0.0"
+    "tag": "1.1.1"
   },
   "platforms": {
     "ios": "13.0",

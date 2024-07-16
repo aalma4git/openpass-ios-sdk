@@ -210,8 +210,14 @@ final class OpenPassManagerTests: XCTestCase {
             XCTAssertEqual(components.host, "auth.myopenpass.com")
             XCTAssertEqual(components.path, "/v1/api/authorize")
 
-            // Don't test random/platform-specific values
-            let ignoredQueryItems: Set = ["code_challenge", "device_model", "device_platform", "device_platform_version"]
+            let ignoredQueryItems: Set = ["code_challenge", "device_model", "device_platform", "device_platform_version", "sdk_version"]
+            let allQueryItemNames = (components.queryItems ?? [])
+                .map(\.name)
+            let allQueryItemNamesSet = Set(allQueryItemNames)
+            // Don't test random/platform-specific values, just check for existence
+            ignoredQueryItems.forEach { name in
+                XCTAssertTrue(allQueryItemNamesSet.contains(name))
+            }
             let queryItems = (components.queryItems ?? [])
                 .filter { !ignoredQueryItems.contains($0.name) }
                 .sorted { $0.name < $1.name }
@@ -223,7 +229,6 @@ final class OpenPassManagerTests: XCTestCase {
                 .init(name: "response_type", value: "code"),
                 .init(name: "scope", value: "openid"),
                 .init(name: "sdk_name", value: "openpass-ios-sdk"),
-                .init(name: "sdk_version", value: "1.1.0"),
                 .init(name: "state", value: "state123"),
             ])
 
