@@ -28,9 +28,6 @@ import AuthenticationServices
 import Foundation
 import Security
 
-/// A function type for authentication
-internal typealias AuthenticationSession = (_ url: URL, _ callbackURLScheme: String) async throws -> URL
-
 /// Primary app interface for integrating with OpenPass SDK.
 @available(iOS 13.0, tvOS 16.0, *)
 @MainActor
@@ -85,17 +82,11 @@ public final class OpenPassManager {
 
     /// Internal dependency
     private let authenticationSession: AuthenticationSession
-    
+
     private let tokenValidator: IDTokenValidation
 
     /// Internal dependency
     private let clock: Clock
-
-#if os(iOS)
-    private static let authenticationContextProvider: ASWebAuthenticationPresentationContextProviding = {
-        AuthenticationPresentationContextProvider()
-    }()
-#endif
 
     /// Singleton Constructor for parsing Info.plist configuration.
     private convenience init() {
@@ -121,14 +112,14 @@ public final class OpenPassManager {
     ///   - baseURL: API base URL. If `nil`, the `defaultBaseURL` is used.
     ///   - clientId: Application client identifier
     ///   - redirectHost: The expected redirect host configured for your application
-    ///   - authenticationSession: Provides an authentication session. The default is to use `ASWebAuthenticationSession`.
+    ///   - authenticationSession: Provides an authentication session. The default is to use a web based authentication session.
     ///   - authenticationStateGenerator: Authentication state generator. Defaults to a random string.
     ///   - tokenValidator: ID Token validator
     internal init(
         baseURL: String? = nil,
         clientId: String,
         redirectHost: String,
-        authenticationSession: @escaping AuthenticationSession = OpenPassManager.authenticationSession(url:callbackURLScheme:),
+        authenticationSession: AuthenticationSession = WebAuthenticationSession(),
         authenticationStateGenerator: RandomStringGenerator = .init { randomString(length: 32) },
         tokenValidator: IDTokenValidation? = nil,
         clock: Clock = RealClock()
@@ -222,7 +213,7 @@ public final class OpenPassManager {
     ) async throws -> (code: String, state: String) {
         let callbackURL: URL
         do {
-            callbackURL = try await authenticationSession(url, callbackURLScheme)
+            callbackURL = try await authenticationSession.authenticate(url: url, callbackURLScheme: callbackURLScheme)
         } catch {
             if let authError = error as? ASWebAuthenticationSessionError, authError.code == .canceledLogin {
                 throw OpenPassError.authorizationCancelled
@@ -249,25 +240,6 @@ public final class OpenPassManager {
             throw OpenPassError.authorizationCallBackDataItems
         }
         return (code: code, state: state)
-    }
-
-    /// Authenticate using `ASWebAuthenticationSession`.
-    private static func authenticationSession(url: URL, callbackURLScheme: String) async throws -> URL {
-        return try await withCheckedThrowingContinuation { continuation in
-            let session = ASWebAuthenticationSession(url: url, callbackURLScheme: callbackURLScheme) { callbackURL, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else if let callbackURL {
-                    continuation.resume(returning: callbackURL)
-                } else {
-                    continuation.resume(throwing: OpenPassError.authorizationCallBackDataItems)
-                }
-            }
-#if os(iOS)
-            session.presentationContextProvider = authenticationContextProvider
-#endif
-            session.start()
-        }
     }
 
     /// Verifies IDToken
@@ -329,6 +301,44 @@ public final class OpenPassManager {
         self.openPassTokens = openPassTokens
         KeychainManager.main.saveOpenPassTokensToKeychain(openPassTokens)
     }
+}
+
+internal protocol AuthenticationSession {
+    func authenticate(url: URL, callbackURLScheme: String) async throws -> URL
+}
+
+/// Authenticate using `ASWebAuthenticationSession`.
+internal final class WebAuthenticationSession: AuthenticationSession {
+    private var session: ASWebAuthenticationSession?
+
+    @MainActor
+    func authenticate(url: URL, callbackURLScheme: String) async throws -> URL {
+        return try await withCheckedThrowingContinuation { continuation in
+            let session = ASWebAuthenticationSession(url: url, callbackURLScheme: callbackURLScheme) { callbackURL, error in
+                defer {
+                    self.session = nil
+                }
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let callbackURL {
+                    continuation.resume(returning: callbackURL)
+                } else {
+                    continuation.resume(throwing: OpenPassError.authorizationCallBackDataItems)
+                }
+            }
+            self.session = session
+#if os(iOS)
+            session.presentationContextProvider = Self.authenticationContextProvider
+#endif
+            session.start()
+        }
+    }
+
+#if os(iOS)
+    private static let authenticationContextProvider: ASWebAuthenticationPresentationContextProviding = {
+        AuthenticationPresentationContextProvider()
+    }()
+#endif
 }
 
 #if os(iOS)

@@ -29,6 +29,8 @@
 import XCTest
 import AuthenticationServices
 
+internal typealias TestAuthenticationSession = (_ url: URL, _ callbackURLScheme: String) async throws -> URL
+
 @available(iOS 13.0, *)
 final class OpenPassManagerTests: XCTestCase {
 
@@ -37,9 +39,8 @@ final class OpenPassManagerTests: XCTestCase {
     @MainActor
     /// Test helper. Runs the sign in flow with default, 'success' parameters. Override parameters to test failure scenarios.
     private func _testSignInUXFlow(
-        callbackURL: URL = OpenPassManagerTests.defaultAuthenticationCallbackURL,
         authenticationState: String = "state123",
-        authenticationSession: AuthenticationSession? = nil,
+        authenticationSession: TestAuthenticationSession? = nil,
         overrideFixtures: [String:(String, Int)] = [:],
         tokenValidator: IDTokenValidation = IDTokenValidationStub.valid
     ) async throws -> OpenPassTokens {
@@ -54,7 +55,7 @@ final class OpenPassManagerTests: XCTestCase {
         let manager = OpenPassManager(
             clientId: "test-client",
             redirectHost: "com.openpass",
-            authenticationSession: authenticationSession ?? { _, _ in callbackURL },
+            authenticationSession: TestAuthenticationSessionProvider(authenticationSession ?? { _, _ in OpenPassManagerTests.defaultAuthenticationCallbackURL }),
             authenticationStateGenerator: .init { authenticationState },
             tokenValidator: tokenValidator
         )
@@ -159,7 +160,7 @@ final class OpenPassManagerTests: XCTestCase {
         let manager = OpenPassManager(
             clientId: "test-client",
             redirectHost: "com.openpass",
-            authenticationSession: { _, _ in fatalError("unimplemented") },
+            authenticationSession: TestAuthenticationSessionProvider({ _, _ in fatalError("unimplemented") }),
             authenticationStateGenerator: .init { fatalError("unimplemented") },
             tokenValidator: IDTokenValidationStub.valid
         )
@@ -184,7 +185,7 @@ final class OpenPassManagerTests: XCTestCase {
         let manager = OpenPassManager(
             clientId: "test-client",
             redirectHost: "com.openpass",
-            authenticationSession: { _, _ in fatalError("unimplemented") },
+            authenticationSession: TestAuthenticationSessionProvider({ _, _ in fatalError("unimplemented") }),
             authenticationStateGenerator: .init { fatalError("unimplemented") },
             tokenValidator: IDTokenValidationStub.valid,
             clock: ImmediateClock()
@@ -201,7 +202,7 @@ final class OpenPassManagerTests: XCTestCase {
     // MARK: -
 
     func testAuthenticationSessionURL() async throws {
-        let session: AuthenticationSession = { url, callbackURLScheme in
+        let session: TestAuthenticationSession = { url, callbackURLScheme in
             XCTAssertEqual(callbackURLScheme, "com.myopenpass.auth.test-client")
 
             let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
@@ -228,7 +229,10 @@ final class OpenPassManagerTests: XCTestCase {
 
             return Self.defaultAuthenticationCallbackURL
         }
-        let _ = try await _testSignInUXFlow(authenticationSession: session, tokenValidator: IDTokenValidationStub.valid)
+        let _ = try await _testSignInUXFlow(
+            authenticationSession: session,
+            tokenValidator: IDTokenValidationStub.valid
+        )
     }
 
     @MainActor
@@ -247,6 +251,20 @@ final class OpenPassManagerTests: XCTestCase {
 }
 
 // MARK: - Test Utils
+
+final class TestAuthenticationSessionProvider: AuthenticationSession {
+
+    let authenticationSession: TestAuthenticationSession
+
+    init(_ authenticationSession: @escaping TestAuthenticationSession) {
+        self.authenticationSession = authenticationSession
+    }
+
+    func authenticate(url: URL, callbackURLScheme: String) async throws -> URL {
+        try await authenticationSession(url, callbackURLScheme)
+    }
+}
+
 
 struct IDTokenValidationStub: IDTokenValidation {
     var valid: Bool
