@@ -83,10 +83,24 @@ class RootViewModel: ObservableObject {
         }
         return NSLocalizedString("common.nil", comment: "")
     }
-
+    
     var email: String {
         if let email = openPassTokens?.idToken?.email {
             return email
+        }
+        return NSLocalizedString("common.nil", comment: "")
+    }
+    
+    var givenName: String {
+        if let givenName = openPassTokens?.idToken?.givenName {
+            return givenName
+        }
+        return NSLocalizedString("common.nil", comment: "")
+    }
+    
+    var familyName: String {
+        if let familyName = openPassTokens?.idToken?.familyName {
+            return familyName
         }
         return NSLocalizedString("common.nil", comment: "")
     }

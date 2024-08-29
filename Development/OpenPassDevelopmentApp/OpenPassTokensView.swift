@@ -82,6 +82,20 @@ struct OpenPassTokensView: View {
             Text(viewModel.email)
                 .font(Font.system(size: 16, weight: .regular))
                 .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Text(LocalizedStringKey("root.label.openpassTokens.givenName"))
+                .font(Font.system(size: 18, weight: .bold))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(viewModel.givenName)
+                .font(Font.system(size: 16, weight: .regular))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Text(LocalizedStringKey("root.label.openpassTokens.familyName"))
+                .font(Font.system(size: 18, weight: .bold))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(viewModel.familyName)
+                .font(Font.system(size: 16, weight: .regular))
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity)
         .padding([.leading, .trailing, .top], 16)

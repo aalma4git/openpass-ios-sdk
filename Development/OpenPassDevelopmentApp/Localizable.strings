@@ -34,5 +34,7 @@
 "root.label.openpassTokens.expiresIn" = "Expires In";
 "root.label.openpassTokens.refreshToken" = "Refresh Token";
 "root.label.openpassTokens.email" = "Email Claim";
+"root.label.openpassTokens.givenName" = "Given Name Claim";
+"root.label.openpassTokens.familyName" = "Family Name Claim";
 
 "root.label.error" = "Error";
