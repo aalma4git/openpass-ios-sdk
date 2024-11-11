@@ -81,7 +81,7 @@ final class OpenPassManagerTests: XCTestCase {
                 }
             )
         ) { error in
-            XCTAssertEqual(error, .authorizationCancelled)
+            assertOpenPassErrorsEqual(error, .authorizationCancelled)
         }
     }
 
@@ -91,7 +91,7 @@ final class OpenPassManagerTests: XCTestCase {
                 authenticationState: "bad state"
             )
         ) { error in
-            XCTAssertEqual(error, .authorizationCallBackDataItems)
+            assertOpenPassErrorsEqual(error, .authorizationCallBackDataItems)
         }
     }
 
@@ -103,7 +103,7 @@ final class OpenPassManagerTests: XCTestCase {
                 }
             )
         ) { error in
-            XCTAssertEqual(error, .authorizationError(code: "invalid", description: "auth-was-bad"))
+            assertOpenPassErrorsEqual(error, .authorizationError(code: "invalid", description: "auth-was-bad"))
         }
     }
 
@@ -115,7 +115,7 @@ final class OpenPassManagerTests: XCTestCase {
                 ]
             )
         ) { error in
-            XCTAssertEqual(
+            assertOpenPassErrorsEqual(
                 error,
                 .tokenData(
                     name: "server_error",
@@ -134,7 +134,7 @@ final class OpenPassManagerTests: XCTestCase {
                 ]
             )
         ) { error in
-            XCTAssertEqual(error, .verificationFailedForOIDCToken)
+            assertOpenPassErrorsEqual(error, .verificationFailedForOIDCToken)
         }
     }
 
@@ -144,7 +144,7 @@ final class OpenPassManagerTests: XCTestCase {
                 tokenValidator: IDTokenValidationStub.invalid
             )
         ) { error in
-            XCTAssertEqual(error, .verificationFailedForOIDCToken)
+            assertOpenPassErrorsEqual(error, .verificationFailedForOIDCToken)
         }
     }
 
@@ -302,30 +302,37 @@ internal func assertThrowsOpenPassError<T>(
     })
 }
 
+func assertOpenPassErrorsEqual(
+    _ lhs: OpenPassError,
+    _ rhs: OpenPassError,
+    file: StaticString = #filePath,
+    line: UInt = #line
+) {
+    XCTAssertTrue(isOpenPassErrorEqual(lhs, rhs), file: file, line: line)
+}
+
 /// Convenience for tests only.
-extension OpenPassError: Equatable {
-    public static func == (lhs: OpenPassError, rhs: OpenPassError) -> Bool {
-        switch (lhs, rhs) {
-        case (.missingConfiguration, .missingConfiguration):
-            return true
-        case (.authorizationUrl, .authorizationUrl):
-            return true
-        case (.authorizationCancelled, .authorizationCancelled):
-            return true
-        case (.authorizationCallBackDataItems, .authorizationCallBackDataItems):
-            return true
-        case (.tokenData(let lName, let lDescription, let lUri), .tokenData(let rName, let rDescription, let rUri)):
-            return lName == rName && lDescription == rDescription && lUri == rUri
-        case (.verificationFailedForOIDCToken, .verificationFailedForOIDCToken):
-            return true
-        case (.invalidJWKS, .invalidJWKS):
-            return true
-        case (.authorizationError(let lCode, let lDescription), .authorizationError(let rCode, let rDescription)):
-            return lCode == rCode && lDescription == rDescription
-        case (.urlGeneration, .urlGeneration):
-            return true
-        default:
-            return false
-        }
+func isOpenPassErrorEqual(_ lhs: OpenPassError, _ rhs: OpenPassError) -> Bool {
+    switch (lhs, rhs) {
+    case (.missingConfiguration, .missingConfiguration):
+        return true
+    case (.authorizationUrl, .authorizationUrl):
+        return true
+    case (.authorizationCancelled, .authorizationCancelled):
+        return true
+    case (.authorizationCallBackDataItems, .authorizationCallBackDataItems):
+        return true
+    case (.tokenData(let lName, let lDescription, let lUri), .tokenData(let rName, let rDescription, let rUri)):
+        return lName == rName && lDescription == rDescription && lUri == rUri
+    case (.verificationFailedForOIDCToken, .verificationFailedForOIDCToken):
+        return true
+    case (.invalidJWKS, .invalidJWKS):
+        return true
+    case (.authorizationError(let lCode, let lDescription), .authorizationError(let rCode, let rDescription)):
+        return lCode == rCode && lDescription == rDescription
+    case (.urlGeneration, .urlGeneration):
+        return true
+    default:
+        return false
     }
 }

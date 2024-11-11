@@ -55,8 +55,11 @@ final class OpenPassTokensTests: XCTestCase {
         let response = try FixtureLoader.decode(OpenPassTokensResponse.self, fixture: "openpasstokens-401")
         XCTAssertThrowsError(try OpenPassTokens(response)) {
             error in
-            let error = try? XCTUnwrap(error as? OpenPassError)
-            XCTAssertEqual(
+            guard let error = error as? OpenPassError else {
+                XCTFail("Expected an error of \(OpenPassError.self)")
+                return
+            }
+            assertOpenPassErrorsEqual(
                 error,
                 .tokenData(
                     name: "invalid_client",

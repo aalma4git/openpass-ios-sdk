@@ -62,7 +62,7 @@ final class RefreshTokenFlowTests: XCTestCase {
         await assertThrowsOpenPassError(
             try await flow.refreshTokens("refresh-token")
         ) { error in
-            XCTAssertEqual(error, .tokenData(
+            assertOpenPassErrorsEqual(error, .tokenData(
                 name: "server_error",
                 description: "An unexpected error has occurred",
                 uri: "https://auth.myopenpass.com"
@@ -86,7 +86,7 @@ final class RefreshTokenFlowTests: XCTestCase {
         await assertThrowsOpenPassError(
             try await flow.refreshTokens("refresh-token")
         ) { error in
-            XCTAssertEqual(error, .verificationFailedForOIDCToken)
+            assertOpenPassErrorsEqual(error, .verificationFailedForOIDCToken)
         }
     }
 }
