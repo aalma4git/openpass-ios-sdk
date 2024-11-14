@@ -5,7 +5,7 @@
 In order to test this flow you will need to set `OpenPassClientId` to `51c42041a7de48f59bff4f8a8a6ad18b` in `Info.plist`, i.e.
 
 ```
-plutil -replace OpenPassClientId -string "224c2e483f764967aa227d4e56308614" Development/OpenPassDevelopmentApp/Info.plist
+plutil -replace OpenPassClientId -string "51c42041a7de48f59bff4f8a8a6ad18b" Development/OpenPassDevelopmentApp/Info.plist
 ```
 
 and to revert:
