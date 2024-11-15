@@ -1,0 +1,35 @@
+name: cocoapods-publish
+
+on:
+  workflow_dispatch:
+    inputs:
+        version:
+          description: 'Tag name for release (e.g. "1.0.0")'
+          required: true
+          type: string
+
+# https://github.com/actions/runner-images/?tab=readme-ov-file#available-images
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Push to Cocoapods trunk
+      env:
+        COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+      run: |
+        mkdir -p tmp
+
+        # Update podspec
+        jq --arg VERSION "${{ inputs.version }}" '. | .version |= $VERSION | .source.tag |= $VERSION' OpenPass.podspec.json > tmp/OpenPass.podspec.json
+
+        # Lint podspec
+        pod spec lint tmp/OpenPass.podspec.json
+
+        # Publish podspec
+        pod trunk push tmp/OpenPass.podspec.json
+
+        # Clean up
+        rm -r tmp
