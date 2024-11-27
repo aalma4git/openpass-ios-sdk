@@ -258,6 +258,8 @@ public final class OpenPassManager {
         }
     }
 
+    /// Returns a client flow for authorization with an external device.
+    /// The client will automatically updated the OpenPassManager's `openPassTokens` if it is successful in refreshing tokens.
     public var deviceAuthorizationFlow: DeviceAuthorizationFlow {
         DeviceAuthorizationFlow(
             openPassClient: openPassClient,

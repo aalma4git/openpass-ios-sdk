@@ -37,6 +37,10 @@ let package = Package(
         .library(
             name: "OpenPass",
             targets: ["OpenPass"]
+        ),
+        .library(
+            name: "OpenPassObjC",
+            targets: ["OpenPassObjC"]
         )
     ],
     dependencies: [],
@@ -51,6 +55,21 @@ let package = Package(
             resources: [
                 .copy("TestData")
             ]
+        ),
+        .target(
+            name: "OpenPassObjC",
+            dependencies: ["OpenPass"],
+            path: "Sources/OpenPassObjC",
+            publicHeadersPath: "./"
+        ),
+        .testTarget(
+            name: "OpenPassObjCTests",
+            dependencies: ["OpenPassObjC", "OpenPass", "ObjCTestHelpers"]
+        ),
+        .target(
+            name: "ObjCTestHelpers",
+            dependencies: ["OpenPass", "OpenPassObjC"],
+            path: "Tests/ObjCTestHelpers"
         )
     ],
     swiftLanguageVersions: [.v5])
