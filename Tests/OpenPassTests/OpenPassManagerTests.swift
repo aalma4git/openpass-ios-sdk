@@ -36,9 +36,16 @@ final class OpenPassManagerTests: XCTestCase {
 
     static let defaultAuthenticationCallbackURL = URL(string: "com.myopenpass.auth.test-client://com.openpass?state=state123&code=123456")!
 
+    override func tearDown() {
+        super.tearDown()
+        OpenPassSettings.shared.clientId = nil
+        OpenPassSettings.shared.redirectHost = nil
+    }
+
     @MainActor
     /// Test helper. Runs the sign in flow with default, 'success' parameters. Override parameters to test failure scenarios.
     private func _testSignInUXFlow(
+        configuration: OpenPassConfiguration? = nil,
         authenticationState: String = "state123",
         authenticationSession: TestAuthenticationSession? = nil,
         overrideFixtures: [String:(String, Int)] = [:],
@@ -53,8 +60,10 @@ final class OpenPassManagerTests: XCTestCase {
         try HTTPStub.shared.stub(fixtures: fixtures)
 
         let manager = OpenPassManager(
-            clientId: "test-client",
-            redirectHost: "com.openpass",
+            configuration: configuration ?? OpenPassConfiguration(
+                clientId: "test-client",
+                redirectHost: "com.openpass"
+            ),
             authenticationSession: TestAuthenticationSessionProvider(authenticationSession ?? { _, _ in OpenPassManagerTests.defaultAuthenticationCallbackURL }),
             authenticationStateGenerator: .init { authenticationState },
             tokenValidator: tokenValidator
@@ -158,8 +167,10 @@ final class OpenPassManagerTests: XCTestCase {
         ])
 
         let manager = OpenPassManager(
-            clientId: "test-client",
-            redirectHost: "com.openpass",
+            configuration: OpenPassConfiguration(
+                clientId: "test-client",
+                redirectHost: "com.openpass"
+            ),
             authenticationSession: TestAuthenticationSessionProvider({ _, _ in fatalError("unimplemented") }),
             authenticationStateGenerator: .init { fatalError("unimplemented") },
             tokenValidator: IDTokenValidationStub.valid
@@ -183,8 +194,10 @@ final class OpenPassManagerTests: XCTestCase {
         ])
 
         let manager = OpenPassManager(
-            clientId: "test-client",
-            redirectHost: "com.openpass",
+            configuration: OpenPassConfiguration(
+                clientId: "test-client",
+                redirectHost: "com.openpass"
+            ),
             authenticationSession: TestAuthenticationSessionProvider({ _, _ in fatalError("unimplemented") }),
             authenticationStateGenerator: .init { fatalError("unimplemented") },
             tokenValidator: IDTokenValidationStub.valid,
@@ -240,6 +253,30 @@ final class OpenPassManagerTests: XCTestCase {
         )
     }
 
+    func testOpenPassSettingsApplyToConfiguration() async throws {
+        // These settings should be reflected in the authorization request
+        OpenPassSettings.shared.clientId = "settings-client-id"
+        OpenPassSettings.shared.redirectHost = "settings-redirect-host"
+
+        let session: TestAuthenticationSession = { url, callbackURLScheme in
+            XCTAssertEqual(callbackURLScheme, "com.myopenpass.auth.settings-client-id")
+
+            let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
+            let queryItems = (components.queryItems ?? [])
+            let clientId = try XCTUnwrap(queryItems.first { $0.name == "client_id" })
+            let redirectUri = try XCTUnwrap(queryItems.first { $0.name == "redirect_uri" })
+            XCTAssertEqual(clientId.value, "settings-client-id")
+            XCTAssertEqual(redirectUri.value, "com.myopenpass.auth.settings-client-id://settings-redirect-host")
+
+            return Self.defaultAuthenticationCallbackURL
+        }
+        let _ = try await _testSignInUXFlow(
+            configuration: OpenPassConfiguration(),
+            authenticationSession: session,
+            tokenValidator: IDTokenValidationStub.valid
+        )
+    }
+
     @MainActor
     func testGenerateCodeChallengeFromVerifierCode() {
         // Base64-URL Encoded String
@@ -248,7 +285,12 @@ final class OpenPassManagerTests: XCTestCase {
         // SHA256 digested and then Base64-URL Encoded String
         let codeChallenge = "rrw_o86gcCbS5BGxT-FUC-AoVjDyMXpRDiYjXUR0Kak"
 
-        let manager = OpenPassManager(clientId: "123", redirectHost: "openpass")
+        let manager = OpenPassManager(
+            configuration: OpenPassConfiguration(
+                clientId: "test-client",
+                redirectHost: "com.openpass"
+            )
+        )
         let generatedCodeChallenge = manager.generateCodeChallengeFromVerifierCode(verifier: codeVerifier)
 
         XCTAssertEqual(generatedCodeChallenge, codeChallenge, "Generated Code Challenge not generated correctly")

@@ -35,7 +35,7 @@ public final class OpenPassManager {
     
     /// Singleton access point for OpenPassManager.
     public static let shared = OpenPassManager()
-    
+
     /// User data for the OpenPass user currently signed in.
     public private(set) var openPassTokens: OpenPassTokens?
     
@@ -44,8 +44,6 @@ public final class OpenPassManager {
     /// OpenPass Server URL for Web UX and API Server
     /// Override default by setting `OpenPassBaseURL` in app's Info.plist
     private let baseURL: String
-
-    private static let defaultBaseURL = "https://auth.myopenpass.com/"
 
     /// OpenPass Client Identifier
     /// Set `OpenPassClientId` in app's Info.plist
@@ -88,49 +86,27 @@ public final class OpenPassManager {
     /// Internal dependency
     private let clock: Clock
 
-    /// Singleton Constructor for parsing Info.plist configuration.
-    private convenience init() {
-        let baseURL: String
-        if let baseURLOverride = Bundle.main.object(forInfoDictionaryKey: "OpenPassBaseURL") as? String, !baseURLOverride.isEmpty {
-            baseURL = baseURLOverride
-        } else {
-            baseURL = Self.defaultBaseURL
-        }
-
-        let clientId = Bundle.main.object(forInfoDictionaryKey: "OpenPassClientId") as? String
-        let redirectHost = Bundle.main.object(forInfoDictionaryKey: "OpenPassRedirectHost") as? String
-
-        self.init(
-            baseURL: baseURL,
-            clientId: clientId ?? "",
-            redirectHost: redirectHost ?? ""
-        )
-    }
-
     /// This initializer is internal for testing.
     /// - Parameters:
-    ///   - baseURL: API base URL. If `nil`, the `defaultBaseURL` is used.
-    ///   - clientId: Application client identifier
-    ///   - redirectHost: The expected redirect host configured for your application
+    ///   - configuration: API and request parameters
     ///   - authenticationSession: Provides an authentication session. The default is to use a web based authentication session.
     ///   - authenticationStateGenerator: Authentication state generator. Defaults to a random string.
     ///   - tokenValidator: ID Token validator
+    ///   - clock: Clock implementation
     internal init(
-        baseURL: String? = nil,
-        clientId: String,
-        redirectHost: String,
+        configuration: OpenPassConfiguration = OpenPassConfiguration(),
         authenticationSession: AuthenticationSession = WebAuthenticationSession(),
         authenticationStateGenerator: RandomStringGenerator = .init { randomString(length: 32) },
         tokenValidator: IDTokenValidation? = nil,
         clock: Clock = RealClock()
     ) {
         // These are also validated in `beginSignInUXFlow`
-        assert(!clientId.isEmpty, "Missing `OpenPassClientId` in Info.plist")
-        assert(!redirectHost.isEmpty, "Missing `OpenPassRedirectHost` in Info.plist")
+        assert(!configuration.clientId.isEmpty, "Missing `OpenPassClientId` in Info.plist")
+        assert(!configuration.redirectHost.isEmpty, "Missing `OpenPassRedirectHost` in Info.plist")
         baseRequestParameters = BaseRequestParameters(sdkName: sdkName, sdkVersion: sdkVersion)
-        self.baseURL = baseURL ?? Self.defaultBaseURL
-        self.clientId = clientId
-        self.redirectHost = redirectHost
+        self.baseURL = configuration.baseURL
+        self.clientId = configuration.clientId
+        self.redirectHost = configuration.redirectHost
 
         self.openPassClient = OpenPassClient(
             baseURL: self.baseURL,
