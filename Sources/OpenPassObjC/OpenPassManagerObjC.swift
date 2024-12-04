@@ -30,13 +30,20 @@ import OpenPass
 @MainActor
 @objc
 public final class OpenPassManagerObjC: NSObject {
+    let manager: OpenPassManager
 
-    private let manager = OpenPassManager.shared
+    private var observers: Set<OpenPassManagerObjCObserver> = []
 
     @objc
-    public static let shared = OpenPassManagerObjC()
+    public static let shared = OpenPassManagerObjC(manager: .shared)
 
-    private override init() {
+    @available(*, unavailable)
+    public override init() {
+        fatalError()
+    }
+
+    init(manager: OpenPassManager) {
+        self.manager = manager
         super.init()
     }
 
@@ -44,6 +51,22 @@ public final class OpenPassManagerObjC: NSObject {
     @objc
     public var openPassTokens: OpenPassTokensObjC? {
         manager.openPassTokens.map(OpenPassTokensObjC.init)
+    }
+
+    /// Add an observer which is called for every new value in `openPassTokens`. The observer is strongly retained by this `OpenPassManagerObjC`.
+    /// To cancel observation, call `removeObserver` using this function's return value.
+    @objc
+    public func addObserver(_ observer: @escaping (OpenPassTokensObjC?) -> Void) -> OpenPassManagerObjCObserver {
+        let observer = OpenPassManagerObjCObserver(manager: manager, observe: observer)
+        self.observers.insert(observer)
+        return observer
+    }
+
+    /// Remove an observer previously added with `addObserver`.
+    @objc
+    public func removeObserver(_ observer: OpenPassManagerObjCObserver) {
+        observer.cancel()
+        self.observers.remove(observer)
     }
 
     /// Starts the OpenID Connect (OAuth) Authentication User Interface Flow.

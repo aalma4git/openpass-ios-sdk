@@ -183,6 +183,43 @@ final class OpenPassManagerTests: XCTestCase {
         XCTAssertEqual(tokens, manager.openPassTokens)
     }
 
+    // MARK: - Observation
+
+    @MainActor
+    func testTokenObservation() async throws {
+        let manager = OpenPassManager(
+            configuration: OpenPassConfiguration(
+                clientId: "test-client",
+                redirectHost: "com.openpass"
+            )
+        )
+
+        // Retrieve the stream's iterator so that we can manually iterate and assert against each value
+        var values = manager.openPassTokensValues().makeAsyncIterator()
+        let tokens = OpenPassTokens(
+            idTokenJWT: "eyJhbGciOiJSUzI1NiIsImtpZCI6Ijc2N2I5MjI1NDQ2MTNmNGMzNWI0ZGFhNjQ2YmJjNjRhYzQ3M2Q2ZjI2ZmEzZDZhMmIzODcxMjk1MmQ5MWJhNzMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxYzYzMDljOS1iZWFlLTRjM2ItOWY5Yi0zNzA3Njk5NmQ4YTYiLCJhdWQiOiIyOTM1MjkxNTk4MjM3NDIzOTg1NyIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODg4OCIsImV4cCI6MTY3NDQwODA2MCwiaWF0IjoxNjcxODE2MDYwLCJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZ2l2ZW5fbmFtZSI6IkpvaG4iLCJmYW1pbHlfbmFtZSI6IkRvZSJ9.kknysH8DD6rCOjhYQhW-gai72yyw-8zEW_-bQlwgztwBfiCBtKR2kXb5q3-tNQf_MQENiUaZ4O-x3PvXJPRLIoox5NuHlmdOQHVOlBfpUDgq1unAq1D5RO5YIi1jnl6IImDNZu5rzYs2Hj8mayJ8B8sZc174zilLVyHxIiKuA5EPKOUyrTsEx7D6SrId0KJ0S9TLkAv3ZpUfsxLrxoTnRU71WO88prkB2N51Z3k8-L-oyKzOk50g_otMt4EvCIQlmn5upIGZH5mKYOow1DOVv-XuVByoikXy6HKsT8zD9iC_vqlaPtJtRctPQMox7qrlee-2BXvWchwMUDVY4NzkhA",
+            idTokenExpiresIn: 1,
+            accessToken: "access_token",
+            tokenType: "token_type",
+            expiresIn: 3,
+            refreshToken: "refresh_token",
+            refreshTokenExpiresIn: 5,
+            issuedAt: Date(timeIntervalSince1970: 7)
+        )
+        do {
+            manager.setOpenPassTokens(tokens)
+            let observed = await values.next()
+            let observedValue = try XCTUnwrap(observed)
+            XCTAssertEqual(observedValue, tokens)
+        }
+        do {
+            _ = manager.signOut()
+            let observed = await values.next()
+            let observedValue = try XCTUnwrap(observed)
+            XCTAssertEqual(observedValue, nil)
+        }
+    }
+
     // MARK: - Device Authorization Flow
 
     @MainActor

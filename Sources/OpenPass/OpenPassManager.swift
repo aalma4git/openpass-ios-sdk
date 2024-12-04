@@ -37,8 +37,21 @@ public final class OpenPassManager {
     public static let shared = OpenPassManager()
 
     /// User data for the OpenPass user currently signed in.
-    public private(set) var openPassTokens: OpenPassTokens?
-    
+    public private(set) var openPassTokens: OpenPassTokens? {
+        didSet {
+            // Capture the current value in the queue operation
+            queue.enqueue { [openPassTokens] in
+                await self.broadcaster.send(openPassTokens)
+            }
+        }
+    }
+
+    private let broadcaster = Broadcaster<OpenPassTokens?>()
+    private let queue = Queue()
+    public func openPassTokensValues() -> AsyncStream<OpenPassTokens?> {
+        broadcaster.values()
+    }
+
     private let openPassClient: OpenPassClient
 
     /// OpenPass Server URL for Web UX and API Server
