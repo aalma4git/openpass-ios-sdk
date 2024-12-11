@@ -1,0 +1,28 @@
+{
+  "configurations" : [
+    {
+      "id" : "976F35F5-E807-45BC-9D72-A7084A0F104E",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "skippedTests" : [
+        "OpenPassDevelopmentAppUITests\/testDeviceAuth()"
+      ],
+      "target" : {
+        "containerPath" : "container:OpenPassDevelopmentApp.xcodeproj",
+        "identifier" : "BF4F1F6A2CE2677000D35A5D",
+        "name" : "OpenPassDevelopmentAppUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

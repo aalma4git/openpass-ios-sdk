@@ -1,5 +1,6 @@
 .DS_Store
 /.build
+/build
 /Packages
 *.xcworkspace
 xcuserdata/
@@ -9,3 +10,6 @@ DerivedData/
 .netrc
 **/Package.resolved
 /Development/docs
+
+# Ignore the populated configuration file to avoid exposing secrets
+Development/OpenPassDevelopmentAppUITests/configuration.json

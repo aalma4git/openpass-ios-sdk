@@ -24,8 +24,6 @@
 // SOFTWARE.
 //
 
-#if os(tvOS)
-
 import CoreImage.CIFilterBuiltins
 import Foundation
 import OpenPass
@@ -117,4 +115,3 @@ extension UIImage {
             .flatMap(UIImage.init(data: ))
     }
 }
-#endif

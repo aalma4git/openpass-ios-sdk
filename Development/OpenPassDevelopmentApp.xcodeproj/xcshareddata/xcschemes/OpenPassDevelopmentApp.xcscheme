@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "1410"
-   version = "1.3">
+   version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
@@ -20,6 +20,20 @@
                ReferencedContainer = "container:OpenPassDevelopmentApp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BF4F1F6A2CE2677000D35A5D"
+               BuildableName = "OpenPassDevelopmentAppUITests.xctest"
+               BlueprintName = "OpenPassDevelopmentAppUITests"
+               ReferencedContainer = "container:OpenPassDevelopmentApp.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -27,7 +41,26 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
+      <TestPlans>
+         <TestPlanReference
+            reference = "container:OpenPassDevelopmentAppUITests/OpenPassDevelopmentAppUITests-Mobile.xctestplan"
+            default = "YES">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:OpenPassDevelopmentAppUITests/OpenPassDevelopmentAppUITests-DeviceAuth.xctestplan">
+         </TestPlanReference>
+      </TestPlans>
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BF4F1F6A2CE2677000D35A5D"
+               BuildableName = "OpenPassDevelopmentAppUITests.xctest"
+               BlueprintName = "OpenPassDevelopmentAppUITests"
+               ReferencedContainer = "container:OpenPassDevelopmentApp.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

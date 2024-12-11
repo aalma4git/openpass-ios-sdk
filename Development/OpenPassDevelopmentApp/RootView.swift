@@ -37,42 +37,58 @@ struct RootView: View {
             Text(viewModel.titleText)
                 .font(Font.system(size: 28, weight: .bold))
                 .padding(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+
             if viewModel.error != nil {
                 ErrorListView(viewModel)
             } else {
-                OpenPassTokensView(viewModel)
-                Spacer()
+                ScrollView {
+                    OpenPassTokensView(viewModel)
+                    Spacer()
+                }
             }
             HStack(alignment: .center, spacing: 20.0) {
                 Button(LocalizedStringKey("root.button.signout")) {
                     viewModel.signOut()
-                }.padding()
+                }
+                .padding()
+                .accessibilityIdentifierIfAvailable("signOut")
 
                 #if !os(tvOS)
                 Button(LocalizedStringKey("root.button.signin")) {
                     viewModel.startSignInUXFlow()
-                }.padding()
+                }
+                .padding()
+                .accessibilityIdentifierIfAvailable("signIn")
                 #endif
 
-                if viewModel.canRefreshTokens {
-                    Button(LocalizedStringKey("root.button.refresh")) {
-                        viewModel.refreshTokenFlow()
-                    }.padding()
-                }
-
-                #if os(tvOS)
                 Button(LocalizedStringKey("root.button.daf")) {
                     viewModel.startSignInDAFFlow()
-                }.padding()
-                #endif
+                }
+                .padding()
+                .accessibilityIdentifierIfAvailable("signInDeviceAuth")
             }
-            #if os(tvOS)
-            .sheet(isPresented: $viewModel.showDAF, content: {
-                DeviceAuthorizationView(showDeviceAuthorizationView: $viewModel.showDAF)
-                    .presentationDetents([.medium])
-            })
-            #endif
+
+            if viewModel.canRefreshTokens {
+                HStack {
+                    Button(LocalizedStringKey("root.button.refresh")) {
+                        viewModel.refreshTokenFlow()
+                    }
+                    .padding()
+                }
+            }
         }
-        .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
+        .frame(maxWidth: .infinity)
+        .sheet(isPresented: $viewModel.showDAF, content: {
+            DeviceAuthorizationView(showDeviceAuthorizationView: $viewModel.showDAF)
+        })
+    }
+}
+extension View {
+    func accessibilityIdentifierIfAvailable(_ identifier: String) -> some View {
+        if #available(iOS 14.0, *) {
+            return self.accessibilityIdentifier(identifier)
+        } else {
+            return self
+        }
     }
 }

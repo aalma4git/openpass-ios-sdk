@@ -26,6 +26,8 @@
 
 import SwiftUI
 
+private let tokenLineLimit = 4
+
 struct OpenPassTokensView: View {
 
     @ObservedObject
@@ -47,6 +49,7 @@ struct OpenPassTokensView: View {
             Text(viewModel.idJWTToken)
                 .font(Font.system(size: 16, weight: .regular))
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .lineLimit(tokenLineLimit)
 
             Text(LocalizedStringKey("root.label.openpassTokens.accessToken"))
                 .font(Font.system(size: 18, weight: .bold))
@@ -54,6 +57,7 @@ struct OpenPassTokensView: View {
             Text(viewModel.accessToken)
                 .font(Font.system(size: 16, weight: .regular))
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .lineLimit(tokenLineLimit)
 
             Text(LocalizedStringKey("root.label.openpassTokens.tokenType"))
                 .font(Font.system(size: 18, weight: .bold))
@@ -75,6 +79,7 @@ struct OpenPassTokensView: View {
             Text(viewModel.refreshToken)
                 .font(Font.system(size: 16, weight: .regular))
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .lineLimit(tokenLineLimit)
 
             Text(LocalizedStringKey("root.label.openpassTokens.email"))
                 .font(Font.system(size: 18, weight: .bold))

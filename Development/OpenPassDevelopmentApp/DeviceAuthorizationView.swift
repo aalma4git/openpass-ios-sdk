@@ -24,7 +24,6 @@
 // SOFTWARE.
 //
 
-#if os(tvOS)
 import OpenPass
 import SwiftUI
 
@@ -47,7 +46,11 @@ struct DeviceAuthorizationView: View {
             case .deviceCodeAvailable(let deviceCode):
                 LabelItem("daf.label.usercode", value: deviceCode.userCode)
                 LabelItem("daf.label.verificationuri", value: deviceCode.verificationUri)
-                LabelItem("daf.label.verficationuricomplete", value: deviceCode.verificationUriComplete ?? "")
+                LabelItem(
+                    "daf.label.verficationuricomplete",
+                    value: deviceCode.verificationUriComplete ?? "",
+                    accessibilityIdentifier: "verificationUriComplete"
+                )
 
                 if let verificationUriCompleteImage = viewModel.verificationUriCompleteImage {
                     Image(uiImage: verificationUriCompleteImage)
@@ -90,10 +93,12 @@ struct DeviceAuthorizationView: View {
 private struct LabelItem: View {
     var label: LocalizedStringKey
     var value: String
+    var accessibilityIdentifier: String
 
-    init(_ label: LocalizedStringKey, value: String) {
+    init(_ label: LocalizedStringKey, value: String, accessibilityIdentifier: String = "") {
         self.label = label
         self.value = value
+        self.accessibilityIdentifier = accessibilityIdentifier
     }
 
     var body: some View {
@@ -102,6 +107,6 @@ private struct LabelItem: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         Text(value)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifierIfAvailable(accessibilityIdentifier)
     }
 }
-#endif

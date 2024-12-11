@@ -24,7 +24,7 @@
 "root.button.signout" = "Sign Out";
 "root.button.signin" = "Sign In";
 "root.button.refresh" = "Refresh";
-"root.button.daf" = "Sign In (Device Auth)";
+"root.button.daf" = "Sign In\n(Device Auth)";
 
 "root.title.openpassTokens" = "OpenPass Tokens";
 
