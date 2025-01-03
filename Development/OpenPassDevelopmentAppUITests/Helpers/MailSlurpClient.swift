@@ -62,6 +62,7 @@ final class MailSlurpClient {
     func delete(_ inbox: InboxDto) async throws {
         _ = try await InboxControllerAPI
             .deleteInboxWithRequestBuilder(inboxId: inbox._id)
+            .setApiKey(apiKey)
             .execute()
             .async()
     }
