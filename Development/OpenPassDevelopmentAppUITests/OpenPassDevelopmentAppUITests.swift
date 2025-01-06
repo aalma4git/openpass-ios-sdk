@@ -34,6 +34,16 @@ let webViewTimeout: Double = 30
 @MainActor
 final class OpenPassDevelopmentAppUITests: XCTestCase {
 
+    /// XCTFail and other assertion methods don't stop `async` UI tests.
+    /// Throwing allows us to stop the test immediately and makes causes of failure clearer.
+    struct UITestError: Error {
+        var message: String
+
+        init(_ message: String) {
+            self.message = message
+        }
+    }
+
     private var inbox: InboxDto?
 
     override func setUpWithError() throws {
@@ -47,7 +57,7 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
                 print("Deleting test inbox.")
                 try await MailSlurpClient.withBundleConfiguration().delete(inbox)
             } catch {
-                print("Error deleting test inbox.")
+                print("Error deleting test inbox \(error).")
             }
         }
     }
@@ -63,10 +73,10 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         self.inbox = inbox
 
         let devApp = DevApp(app)
-        devApp.signOutButton.waitForExistence {
+        try devApp.signOutButton.waitForExistsInteractive {
             $0.tap()
         }
-        devApp.signInButton.waitForExistence {
+        try devApp.signInButton.waitForExistsInteractive {
             $0.tap()
         }
 
@@ -80,7 +90,7 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         try await signIn(view: signInView, client: client, inbox: inbox)
 
         guard app.wait(for: .runningForeground, timeout: webViewTimeout) else {
-            XCTFail("App did not return to foreground")
+            throw UITestError("App did not return to foreground")
             return
         }
     }
@@ -96,33 +106,33 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         self.inbox = inbox
 
         let devApp = DevApp(app)
-        devApp.signOutButton.waitForExistence {
+        try devApp.signOutButton.waitForExistsInteractive {
             $0.tap()
         }
-        devApp.signInDeviceAuthButton.waitForExistence {
+        try devApp.signInDeviceAuthButton.waitForExistsInteractive {
             $0.tap()
         }
 
         // Retrieve the verification URI
         let text = devApp.verificationUriComplete
-        guard text.waitForExistence(timeout: 5),
+        guard try text.waitForExists(),
             let authURL = URL(string: text.label) else {
-            XCTFail("Missing or invalid verification URI")
-            return
+            throw UITestError("Missing or invalid verification URI")
         }
 
         // Open the verification URI in Safari.app
         let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
         safari.open(authURL)
         guard safari.wait(for: .runningForeground, timeout: 10) else {
-            XCTFail("Failed to launch Safari")
-            return
+            throw UITestError("Failed to launch Safari")
         }
 
         // Confirm that we want to sign in for the 'device'
-        safari.buttons["Accept device registration and continue"].waitForExistence(timeout: webViewTimeout) {
-            $0.tap()
+        let continueButton = safari.buttons["Accept device registration and continue"]
+        guard continueButton.waitForExistence(timeout: webViewTimeout) else {
+            throw UITestError("Unable to find device registration Continue button")
         }
+        continueButton.tap()
 
         // Proceed with sign in process
         try await signIn(view: SignInView(safari), client: client, inbox: inbox)
@@ -131,46 +141,43 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         app.activate()
 
         guard app.wait(for: .runningForeground, timeout: webViewTimeout) else {
-            XCTFail("App did not return to foreground")
-            return
+            throw UITestError("App did not return to foreground")
         }
     }
 
     func signIn(view signInView: SignInView, client: MailSlurpClient, inbox: InboxDto) async throws {
         // Ensure the webView is loaded
-        if !signInView.emailInput.waitForExistence(timeout: webViewTimeout) {
+        do {
+            try signInView.emailInput.waitForExists(timeout: webViewTimeout)
+        } catch {
             // If the email address input does not exist, then it's likely that Chrome already has a previous
             // login session active. We need to click the "Use another email" to clear out the old session
             signInView.signInWithAnotherEmail.tap()
         }
 
         // Ensure the webView is loaded
-        guard signInView.emailInput.waitForExistence(timeout: webViewTimeout) else {
-            XCTFail("Missing email input field")
-            return
+        try signInView.emailInput.waitForExistsInteractive(timeout: webViewTimeout) {
+            // Now enter the email address of the MailSlurp inbox into the text input
+            // On a physical device, tapping the input is required before text may be entered
+            $0.tap()
+            $0.typeText(inbox.emailAddress)
         }
 
-        // Now enter the email address of the MailSlurp inbox into the text input
-        // On a physical device, tapping the input is required before text may be entered
-        signInView.emailInput.tap()
-        signInView.emailInput.typeText(inbox.emailAddress)
         // Click Continue
-        signInView.emailInputContinue.tap()
+        try signInView.emailInputContinue.waitForExistsInteractive {
+            $0.tap()
+        }
 
         // Now wait for the email containing the OTP
         guard let code = try await client.latestOTP(from: inbox) else {
-            XCTFail("Failed to parse OTP code from email")
-            return
+            throw UITestError("Failed to parse OTP code from email")
         }
 
         // ...and enter it into the OTP text boxes, ensuring the webView is loaded
-        guard signInView.codeInput.waitForExistence(timeout: webViewTimeout) else {
-            XCTFail("OTP input page failed to load")
-            return
+        try signInView.codeInput.waitForExistsInteractive(timeout: webViewTimeout) { _ in
+            signInView.enterCode(code)
         }
-        signInView.enterCode(code)
     }
-
 }
 
 @MainActor
