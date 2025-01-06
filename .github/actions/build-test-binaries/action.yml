@@ -1,0 +1,25 @@
+name: 'Build test binaries'
+description: 'Compiles App .ipa and Test Suite .app for a Test Plan'
+inputs:
+  client-id:
+    description: 'OpenPass Client ID'
+    required: true
+  testplan:
+    description: 'Xcode Test Plan name, specifying which test(s) to run'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Set Client ID
+      run: Development/scripts/set-client-id.sh '${{ inputs.client-id }}'
+      shell: bash
+ 
+    - name: Build and export .ipa
+      run: |
+        Development/scripts/build-export-ipa.sh
+        mv build/OpenPassDevelopmentApp.ipa build/${{ inputs.testplan }}.ipa
+      shell: bash
+
+    - name: Build Test Suite
+      run: Development/scripts/build-browserstack-test-suite.sh ${{ inputs.testplan }}
+      shell: bash

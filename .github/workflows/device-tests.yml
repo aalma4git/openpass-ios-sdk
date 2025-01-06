@@ -1,0 +1,112 @@
+name: OpenPass iOS SDK Device Tests
+
+# This is a workflow which is designed to be called from other workflows.
+# You can see an example of this in `build.yml` file 'uses' this file.
+# This workflow is also used from other repositories, which is why we
+# need to force checkout this repository.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        default: 'main'
+        type: string
+      working-directory:
+        default: '.'
+        type: string
+      environment:
+        default: 'https://auth.myopenpass.com'
+        type: string
+      sign-in-client-id:
+        default: '421d407048794885b2baf4dbcde185cb'
+        type: string
+      device-auth-client-id:
+        default: '51c42041a7de48f59bff4f8a8a6ad18b'
+        type: string
+    secrets:
+      READ_ONLY_CONTENT_APP_PRIVATE_KEY:
+        required: true
+      FASTLANE_MATCH_PASSWORD:
+        required: true
+      BROWSERSTACK_USERNAME:
+        required: true
+      BROWSERSTACK_ACCESS_KEY:
+        required: true
+      MAIL_SLURP_API_KEY:
+        required: true
+      CHECKOUT_TOKEN:
+        required: false
+
+jobs:
+  device-tests:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # We need to force this repository, otherwise when workflow is called from other repos,
+          # it inherits the context of that repo.
+          repository: 'openpass-sso/openpass-ios-sdk'
+          ref: ${{ inputs.ref }}
+          path: ${{ inputs.working-directory }}
+          token: ${{ secrets.CHECKOUT_TOKEN || github.token }}
+
+      - name: Select Xcode 16.0
+        run: sudo xcode-select -s /Applications/Xcode_16.app
+
+      - name: Authenticate using GitHub App
+        id: auth
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ vars.READ_ONLY_CONTENT_APP_ID }}
+          private_key: ${{ secrets.READ_ONLY_CONTENT_APP_PRIVATE_KEY }}
+
+      - name: Configure Codesigning with match
+        env: 
+          MATCH_PASSWORD: ${{ secrets.FASTLANE_MATCH_PASSWORD }}
+          MATCH_GIT_TOKEN: ${{ steps.auth.outputs.token }}
+        run: |
+          bundle install
+          bundle exec fastlane ci
+
+      - name: Configure Info.plist
+        run: plutil -insert OpenPassBaseURL -string '${{ inputs.environment }}' Development/OpenPassDevelopmentApp/Info.plist
+
+      - name: Populate Mailslurp configuration file for Test Runner
+        env:
+          MAIL_SLURP_API_KEY: ${{ secrets.MAIL_SLURP_API_KEY }}
+        run: jq --arg key "$MAIL_SLURP_API_KEY" '.mailslurpApiKey = $key' Development/OpenPassDevelopmentAppUITests/configuration.json.tpl > Development/OpenPassDevelopmentAppUITests/configuration.json
+
+      - name: Create working directory
+        run: mkdir -p build/derived-data
+
+      - name: Build App & Test Suite for Mobile Sign-in
+        uses: ./.github/actions/build-test-binaries
+        with:
+          client-id: ${{ inputs.sign-in-client-id }}
+          testplan: OpenPassDevelopmentAppUITests-Mobile
+
+      - name: Build App & Test Suite for Device Auth
+        uses: ./.github/actions/build-test-binaries
+        with:
+          client-id: ${{ inputs.device-auth-client-id }}
+          testplan: OpenPassDevelopmentAppUITests-DeviceAuth
+
+      - name: Upload and Mobile Sign-in Tests on Browserstack
+        uses: openpass-sso/shared-public-actions/actions/browserstack@v0.0.1
+        with:
+          browserstackUsername: ${{ secrets.BROWSERSTACK_USERNAME }}
+          browserstackAccessKey: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          project: OpenPass iOS SDK
+          iosAppFilePath: ${{ inputs.working-directory }}/build/OpenPassDevelopmentAppUITests-Mobile.ipa
+          iosTestFilePath: ${{ inputs.working-directory }}/build/derived-data/Build/Products/Debug-iphoneos/OpenPassDevelopmentAppUITests-Mobile.zip
+          devices: iPhone 16 Pro-18
+
+      - name: Upload and run Device Auth Sign-in Tests on Browserstack
+        uses: openpass-sso/shared-public-actions/actions/browserstack@v0.0.1
+        with:
+          browserstackUsername: ${{ secrets.BROWSERSTACK_USERNAME }}
+          browserstackAccessKey: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          project: OpenPass iOS SDK
+          iosAppFilePath: ${{ inputs.working-directory }}/build/OpenPassDevelopmentAppUITests-DeviceAuth.ipa
+          iosTestFilePath: ${{ inputs.working-directory }}/build/derived-data/Build/Products/Debug-iphoneos/OpenPassDevelopmentAppUITests-DeviceAuth.zip
+          devices: iPhone 16 Pro-18

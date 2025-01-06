@@ -40,3 +40,14 @@ jobs:
 
       - name: Lint pod spec
         run: pod lib lint --verbose
+
+  device-tests:
+    uses: ./.github/workflows/device-tests.yml
+    with: 
+      ref: ${{ github.head_ref }}
+    secrets:
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      FASTLANE_MATCH_PASSWORD: ${{ secrets.FASTLANE_MATCH_PASSWORD }}
+      MAIL_SLURP_API_KEY: ${{ secrets.MAIL_SLURP_API_KEY }}
+      READ_ONLY_CONTENT_APP_PRIVATE_KEY: ${{ secrets.READ_ONLY_CONTENT_APP_PRIVATE_KEY }}

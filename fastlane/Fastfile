@@ -1,0 +1,62 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+  lane :ci do 
+    setup_for_ci if ENV['CI']
+  end
+
+  private_lane :setup_for_ci do
+    # Call the native setup_ci action
+    setup_ci
+
+    if ENV['MATCH_PASSWORD']
+      match(type: 'development', readonly: true)
+    end
+
+    if lane_context[SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING]
+      # If we're using Match, we need to force the relevant provisioning profile
+      # See: https://stackoverflow.com/a/70619925
+      profile_mapping = lane_context[SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING]
+      update_code_signing_settings(
+        targets: "OpenPassDevelopmentApp",
+        use_automatic_signing: false,
+        path: "Development/OpenPassDevelopmentApp.xcodeproj",
+        profile_name: profile_mapping["com.myopenpass.OpenPassDevelopmentApp1"],
+        code_sign_identity: "Apple Development",
+      )
+      update_code_signing_settings(
+        targets: "OpenPassDevelopmentAppUITests",
+        use_automatic_signing: false,
+        path: "Development/OpenPassDevelopmentApp.xcodeproj",
+        profile_name: profile_mapping["com.myopenpass.OpenPassDevelopmentAppUITests1.xctrunner"],
+        code_sign_identity: "Apple Development",
+      )
+    end
+  end
+
+  lane :update_match_certificates do
+    app_store_connect_api_key
+
+    bundle_ids = [
+      "com.myopenpass.OpenPassDevelopmentApp1",
+      "com.myopenpass.OpenPassDevelopmentAppUITests1.xctrunner"
+    ]
+
+    match(type: 'development', app_identifier: bundle_ids)
+  end
+end

@@ -14,8 +14,8 @@
   "testTargets" : [
     {
       "parallelizable" : true,
-      "skippedTests" : [
-        "OpenPassDevelopmentAppUITests\/testDeviceAuth()"
+      "selectedTests" : [
+        "OpenPassDevelopmentAppUITests\/testMobileSignIn()"
       ],
       "target" : {
         "containerPath" : "container:OpenPassDevelopmentApp.xcodeproj",

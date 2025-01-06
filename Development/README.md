@@ -5,11 +5,11 @@
 In order to test this flow you will need to set `OpenPassClientId` to `51c42041a7de48f59bff4f8a8a6ad18b` in `Info.plist`, i.e.
 
 ```
-plutil -replace OpenPassClientId -string "51c42041a7de48f59bff4f8a8a6ad18b" Development/OpenPassDevelopmentApp/Info.plist
+Development/scripts/set-client-id.sh "51c42041a7de48f59bff4f8a8a6ad18b"
 ```
 
 and to revert:
 
 ```
-plutil -replace OpenPassClientId -string "421d407048794885b2baf4dbcde185cb" Development/OpenPassDevelopmentApp/Info.plist
+Development/scripts/set-client-id.sh "421d407048794885b2baf4dbcde185cb"
 ```

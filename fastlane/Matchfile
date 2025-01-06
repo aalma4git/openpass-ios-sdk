@@ -1,0 +1,21 @@
+
+if ENV['CI']
+  # If we're running on CI, we need to use use Git over HTTPS + basic auth using the CI_JOB_TOKEN
+  git_basic_authorization(Base64.strict_encode64("oauth2:#{ENV['MATCH_GIT_TOKEN']}"))
+  git_url("https://github.com/openpass-sso/mobile-certificates")
+else
+  git_url("git@github.com:openpass-sso/mobile-certificates.git")
+end
+
+git_branch("main")
+
+storage_mode("git")
+
+type("development")
+
+app_identifier(
+  [
+    'com.myopenpass.OpenPassDevelopmentApp1',
+    'com.myopenpass.OpenPassDevelopmentAppUITests1.xctrunner'
+  ]
+)

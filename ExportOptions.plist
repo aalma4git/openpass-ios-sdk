@@ -4,11 +4,18 @@
 <dict>
 	<key>compileBitcode</key>
 	<false/>
+	<key>teamID</key>
+	<string>UW77J35X4D</string>
+	<key>signingStyle</key>
+	<string>manual</string>
 	<key>method</key>
 	<string>debugging</string>
-	<key>signingStyle</key>
-	<string>automatic</string>
 	<key>stripSwiftSymbols</key>
 	<true/>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>com.myopenpass.OpenPassDevelopmentApp1</key>
+		<string>match Development com.myopenpass.OpenPassDevelopmentApp1</string>
+	</dict>
 </dict>
 </plist>
