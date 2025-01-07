@@ -95,4 +95,12 @@
     [self waitForExpectations:@[notExpectation] timeout:1];
 }
 
+- (void)testMethodExports
+{
+    OpenPassManagerObjC *manager = [OpenPassManagerObjC testInstance];
+    XCTAssertNotNil([manager signInFlow]);
+    XCTAssertNotNil([manager refreshTokenFlow]);
+    XCTAssertNotNil([manager deviceAuthorizationFlow]);
+}
+
 @end

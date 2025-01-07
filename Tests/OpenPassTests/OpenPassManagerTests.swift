@@ -59,17 +59,20 @@ final class OpenPassManagerTests: XCTestCase {
         let fixtures = defaultFixtures.merging(overrideFixtures) { $1 }
         try HTTPStub.shared.stub(fixtures: fixtures)
 
-        let manager = OpenPassManager(
-            configuration: configuration ?? OpenPassConfiguration(
-                clientId: "test-client",
-                redirectHost: "com.openpass"
+        let flow = SignInFlow(
+            openPassClient: OpenPassClient(
+                baseURL: OpenPassConfiguration.defaultBaseURL,
+                baseRequestParameters: BaseRequestParameters(sdkName: "openpass-ios-sdk", sdkVersion: "1.0"),
+                clientId: "test-client"
             ),
+            tokenValidator: tokenValidator,
             authenticationSession: TestAuthenticationSessionProvider(authenticationSession ?? { _, _ in OpenPassManagerTests.defaultAuthenticationCallbackURL }),
             authenticationStateGenerator: .init { authenticationState },
-            tokenValidator: tokenValidator
+            redirectHost: "com.openpass",
+            tokensObserver: { _ in }
         )
 
-        return try await manager.beginSignInUXFlow()
+        return try await flow.beginSignIn()
     }
 
     // MARK: - Sign In Flow
@@ -171,8 +174,6 @@ final class OpenPassManagerTests: XCTestCase {
                 clientId: "test-client",
                 redirectHost: "com.openpass"
             ),
-            authenticationSession: TestAuthenticationSessionProvider({ _, _ in fatalError("unimplemented") }),
-            authenticationStateGenerator: .init { fatalError("unimplemented") },
             tokenValidator: IDTokenValidationStub.valid
         )
         let flow = manager.refreshTokenFlow
@@ -235,8 +236,6 @@ final class OpenPassManagerTests: XCTestCase {
                 clientId: "test-client",
                 redirectHost: "com.openpass"
             ),
-            authenticationSession: TestAuthenticationSessionProvider({ _, _ in fatalError("unimplemented") }),
-            authenticationStateGenerator: .init { fatalError("unimplemented") },
             tokenValidator: IDTokenValidationStub.valid,
             clock: ImmediateClock()
         )
@@ -290,8 +289,14 @@ final class OpenPassManagerTests: XCTestCase {
         )
     }
 
+    @MainActor
     func testOpenPassSettingsApplyToConfiguration() async throws {
+        try HTTPStub.shared.stub(fixtures: [
+            "/v1/api/token": ("openpasstokens-200", 200),
+            "/.well-known/jwks": ("jwks", 200),
+        ])
         // These settings should be reflected in the authorization request
+        // The values are asserted in the authentication session below.
         OpenPassSettings.shared.clientId = "settings-client-id"
         OpenPassSettings.shared.redirectHost = "settings-redirect-host"
 
@@ -307,11 +312,21 @@ final class OpenPassManagerTests: XCTestCase {
 
             return Self.defaultAuthenticationCallbackURL
         }
-        let _ = try await _testSignInUXFlow(
-            configuration: OpenPassConfiguration(),
-            authenticationSession: session,
+
+        let configuration = OpenPassConfiguration()
+        let manager = OpenPassManager(
+            configuration: configuration,
             tokenValidator: IDTokenValidationStub.valid
         )
+        let flow = SignInFlow(
+            openPassClient: manager.openPassClient,
+            tokenValidator: IDTokenValidationStub.valid,
+            authenticationSession: TestAuthenticationSessionProvider(session),
+            authenticationStateGenerator: .init { "state123" },
+            redirectHost: configuration.redirectHost,
+            tokensObserver: { _ in }
+        )
+        let _ = try await flow.beginSignIn()
     }
 
     @MainActor

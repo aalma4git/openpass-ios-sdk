@@ -69,18 +69,25 @@ public final class OpenPassManagerObjC: NSObject {
         self.observers.remove(observer)
     }
 
-    /// Starts the OpenID Connect (OAuth) Authentication User Interface Flow.
-    @objc
-    public func beginSignInUXFlow() async throws -> OpenPassTokensObjC {
-        let tokens = try await manager.beginSignInUXFlow()
-        return OpenPassTokensObjC(tokens)
-    }
-
     /// Signs user out by clearing all sign-in data currently in SDK.  This includes keychain and in-memory data.
     @objc
     @discardableResult
     public func signOut() -> Bool {
         manager.signOut()
+    }
+
+    /// Returns an OpenID Connect (OAuth) Authentication User Interface Flow.
+    /// The client will automatically updated the OpenPassManager's `openPassTokens` if the flow completes successfully.
+    ///
+    ///     SignInFlowObjC *flow = OpenPassManagerObjC.shared.signInFlow;
+    ///     [flow signInWithCompletionHandler:^(OpenPassTokensObjC * _Nullable tokens, NSError * _Nullable error) {
+    ///         dispatch_async(dispatch_get_main_queue(), ^{
+    ///             // Update UI
+    ///         });
+    ///     }];
+    @objc
+    public var signInFlow: SignInFlowObjC {
+        SignInFlowObjC(signInFlow: manager.signInFlow)
     }
 
     /// Returns a client flow for refreshing tokens.

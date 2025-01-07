@@ -33,7 +33,7 @@ internal final class OpenPassClient {
     
     private let baseURL: String
     private let baseRequestParameters: BaseRequestParameters
-    private let clientId: String
+    let clientId: String
     private let session = URLSession.shared
 
     init(baseURL: String, baseRequestParameters: BaseRequestParameters, clientId: String) {
@@ -146,4 +146,47 @@ internal final class OpenPassClient {
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         return try decoder.decode(ResponseType.self, from: data)
     }
+}
+
+extension OpenPassClient {
+    func authorizeUrl(
+        redirectUri: String,
+        codeVerifier: String,
+        authorizeState: String
+    ) throws -> URL {
+        let challengeHashString = generateCodeChallengeFromVerifierCode(verifier: codeVerifier)
+
+        guard var components = URLComponents(string: baseURL) else {
+            throw OpenPassError.missingConfiguration
+        }
+
+        components.path = "/v1/api/authorize"
+        components.queryItems = [
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "client_id", value: clientId),
+            URLQueryItem(name: "redirect_uri", value: redirectUri),
+            URLQueryItem(name: "scope", value: "openid"),
+            URLQueryItem(name: "state", value: authorizeState),
+            URLQueryItem(name: "code_challenge_method", value: "S256"),
+            URLQueryItem(name: "code_challenge", value: challengeHashString)
+        ]
+        components.queryItems?.append(contentsOf: baseRequestParameters.asQueryItems)
+        guard let url = components.url else {
+            throw OpenPassError.authorizationUrl
+        }
+        return url
+    }
+}
+
+private func generateCodeChallengeFromVerifierCode(verifier: String) -> String {
+
+    let codeVerifierData = Data(verifier.utf8)
+    let challengeHash = SHA256.hash(data: codeVerifierData)
+
+    // Need to get challengeHash to Data and THEN baseURLEncode
+    let bytes: [UInt8] = Array(challengeHash.makeIterator())
+    let data: Data = Data(bytes)
+    let base64UrlEncodedHashed = data.base64EncodedString().base64URLEscaped()
+
+    return base64UrlEncodedHashed
 }
