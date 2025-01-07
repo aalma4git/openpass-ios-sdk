@@ -91,7 +91,6 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
 
         guard app.wait(for: .runningForeground, timeout: webViewTimeout) else {
             throw UITestError("App did not return to foreground")
-            return
         }
     }
 
@@ -148,7 +147,7 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
     func signIn(view signInView: SignInView, client: MailSlurpClient, inbox: InboxDto) async throws {
         // Ensure the webView is loaded
         do {
-            try signInView.emailInput.waitForExists(timeout: webViewTimeout)
+            try signInView.emailInput.waitForExistence()
         } catch {
             // If the email address input does not exist, then it's likely that Chrome already has a previous
             // login session active. We need to click the "Use another email" to clear out the old session
@@ -156,7 +155,7 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         }
 
         // Ensure the webView is loaded
-        try signInView.emailInput.waitForExistsInteractive(timeout: webViewTimeout) {
+        try signInView.emailInput.waitForExistence {
             // Now enter the email address of the MailSlurp inbox into the text input
             // On a physical device, tapping the input is required before text may be entered
             $0.tap()
@@ -164,7 +163,7 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         }
 
         // Click Continue
-        try signInView.emailInputContinue.waitForExistsInteractive {
+        try signInView.emailInputContinue.waitForExistence {
             $0.tap()
         }
 
@@ -174,7 +173,7 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         }
 
         // ...and enter it into the OTP text boxes, ensuring the webView is loaded
-        try signInView.codeInput.waitForExistsInteractive(timeout: webViewTimeout) { _ in
+        try signInView.codeInput.waitForExistence { _ in
             signInView.enterCode(code)
         }
     }

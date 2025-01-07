@@ -78,6 +78,19 @@ struct WaitError: Error, LocalizedError {
 }
 
 extension XCUIElement {
+    /// A convenience for waiting for an element to exist and then performing an action with the element.
+    func waitForExistence(
+        timeout: TimeInterval = webViewTimeout,
+        action: (_ element: XCUIElement) -> Void = { _ in }
+    ) throws {
+        guard waitForExistence(timeout: timeout) else {
+            throw WaitError(message: "Element did not come to exist \(self.debugDescription)")
+        }
+        action(self)
+    }
+}
+
+extension XCUIElement {
     /// A convenience for waiting for the element's `exists` property to be true.
     @discardableResult
     func waitForExists(
