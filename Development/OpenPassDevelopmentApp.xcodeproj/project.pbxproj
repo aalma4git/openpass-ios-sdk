@@ -10,6 +10,7 @@
 		BF22CC1F2CE3AC89003C0163 /* mailslurp in Frameworks */ = {isa = PBXBuildFile; productRef = BF22CC1E2CE3AC89003C0163 /* mailslurp */; };
 		BF22CC222CE41074003C0163 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = BF22CC212CE41074003C0163 /* SwiftSoup */; };
 		BFEB6D9D2BB2F1E600A1CD75 /* DeviceAuthorizationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFEB6D9C2BB2F1E600A1CD75 /* DeviceAuthorizationViewModel.swift */; };
+		BFFEA4032D3575D500C6502D /* OpenPassTests.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = BFFEA4022D3575D500C6502D /* OpenPassTests.xctestplan */; };
 		E245BA5F293F9C150053DCB2 /* OpenPassTokensView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E245BA5E293F9C150053DCB2 /* OpenPassTokensView.swift */; };
 		E262B3DD2913FD1100C55A06 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E262B3DC2913FD1100C55A06 /* Localizable.strings */; };
 		E298111128F9DDC400A6A6E0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E298111028F9DDC400A6A6E0 /* AppDelegate.swift */; };
@@ -34,6 +35,7 @@
 /* Begin PBXFileReference section */
 		BF4F1F6B2CE2677000D35A5D /* OpenPassDevelopmentAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenPassDevelopmentAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFEB6D9C2BB2F1E600A1CD75 /* DeviceAuthorizationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAuthorizationViewModel.swift; sourceTree = "<group>"; };
+		BFFEA4022D3575D500C6502D /* OpenPassTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = OpenPassTests.xctestplan; path = ../Sources/OpenPassTests.xctestplan; sourceTree = SOURCE_ROOT; };
 		E245BA5E293F9C150053DCB2 /* OpenPassTokensView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenPassTokensView.swift; sourceTree = "<group>"; };
 		E262B3DC2913FD1100C55A06 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		E298110D28F9DDC400A6A6E0 /* OpenPassDevelopmentApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenPassDevelopmentApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -86,6 +88,7 @@
 		E298110428F9DDC400A6A6E0 = {
 			isa = PBXGroup;
 			children = (
+				BFFEA4022D3575D500C6502D /* OpenPassTests.xctestplan */,
 				E2E9795628F9E58900E46CE8 /* Packages */,
 				E298110F28F9DDC400A6A6E0 /* OpenPassDevelopmentApp */,
 				BF4F1F6C2CE2677000D35A5D /* OpenPassDevelopmentAppUITests */,
@@ -232,6 +235,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BFFEA4032D3575D500C6502D /* OpenPassTests.xctestplan in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

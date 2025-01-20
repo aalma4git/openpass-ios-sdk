@@ -43,11 +43,14 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:OpenPassDevelopmentAppUITests/OpenPassDevelopmentAppUITests-Mobile.xctestplan"
-            default = "YES">
+            reference = "container:OpenPassDevelopmentAppUITests/OpenPassDevelopmentAppUITests-Mobile.xctestplan">
          </TestPlanReference>
          <TestPlanReference
             reference = "container:OpenPassDevelopmentAppUITests/OpenPassDevelopmentAppUITests-DeviceAuth.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:../Sources/OpenPassTests.xctestplan"
+            default = "YES">
          </TestPlanReference>
       </TestPlans>
       <Testables>

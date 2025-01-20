@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "92F27D52-A1FE-42F8-9E1B-9C3E28F73543",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:..",
+        "identifier" : "OpenPassObjCTests",
+        "name" : "OpenPassObjCTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:..",
+        "identifier" : "OpenPassTests",
+        "name" : "OpenPassTests"
+      }
+    }
+  ],
+  "version" : 1
+}
