@@ -91,7 +91,7 @@ jobs:
           client-id: ${{ inputs.device-auth-client-id }}
           testplan: OpenPassDevelopmentAppUITests-DeviceAuth
 
-      - name: Upload and Mobile Sign-in Tests on Browserstack
+      - name: Upload and run Mobile Sign-in Tests on Browserstack
         uses: openpass-sso/shared-public-actions/actions/browserstack@v0.0.1
         with:
           browserstackUsername: ${{ secrets.BROWSERSTACK_USERNAME }}

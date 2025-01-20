@@ -29,7 +29,7 @@ import XCTest
 
 /// Timeout for page loads.
 /// Most of the sign in flow takes place in a webview, so we're required to wait for network loads etc.
-let webViewTimeout: Double = 30
+let webViewTimeout: Double = 15
 
 @MainActor
 final class OpenPassDevelopmentAppUITests: XCTestCase {
@@ -127,14 +127,21 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         }
 
         // Confirm that we want to sign in for the 'device'
-        let continueButton = safari.buttons["Accept device registration and continue"]
-        guard continueButton.waitForExistence(timeout: webViewTimeout) else {
-            throw UITestError("Unable to find device registration Continue button")
+        let acceptButton = safari.buttons["Accept device registration and continue"]
+        try acceptButton.waitForExistence {
+            $0.tap()
         }
-        continueButton.tap()
+
+        // Wait for sign in to load
+        let signInView = SignInView(safari)
+        do {
+            try signInView.emailInputContinue.waitForExistence()
+        } catch {
+            print("Unable to find email input")
+        }
 
         // Proceed with sign in process
-        try await signIn(view: SignInView(safari), client: client, inbox: inbox)
+        try await signIn(view: signInView, client: client, inbox: inbox)
 
         // Return to this dev app
         app.activate()
@@ -145,7 +152,8 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
     }
 
     func signIn(view signInView: SignInView, client: MailSlurpClient, inbox: InboxDto) async throws {
-        // Ensure the webView is loaded
+        // Ensure the webView is loaded and the email input exists
+        // If the user has a cached session, we will eventually tap the signInWithAnotherEmail element.
         do {
             try signInView.emailInput.waitForExistence()
         } catch {
@@ -154,17 +162,38 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
             signInView.signInWithAnotherEmail.tap()
         }
 
-        // Ensure the webView is loaded
-        try signInView.emailInput.waitForExistence {
-            // Now enter the email address of the MailSlurp inbox into the text input
-            // On a physical device, tapping the input is required before text may be entered
-            $0.tap()
-            $0.typeText(inbox.emailAddress)
+        func enterEmailAddress() throws {
+            // Ensure the email input exists
+            try signInView.emailInput.waitForExistence {
+                // Now enter the email address of the MailSlurp inbox into the text input
+                // On a physical device, tapping the input is required before text may be entered
+                $0.tap()
+                $0.typeText(inbox.emailAddress)
+            }
         }
+
+        // Enter the MailSlurp email address
+        try enterEmailAddress()
 
         // Click Continue
         try signInView.emailInputContinue.waitForExistence {
             $0.tap()
+        }
+
+        // For reasons unknown, entering text in the emailInput often fails the first time.
+        // In general, the first interaction within a WebView appears to be unreliable.
+        // Wait to see if an error is shown, and reattempt email address entry.
+        let errorExists = signInView.emailInputError.waitForExistence(timeout: 5)
+        if errorExists {
+            // Attempt to enter the email address a final time...
+            try enterEmailAddress()
+            // ...and then tap Continue
+            try signInView.emailInputContinue.waitForExistence {
+                $0.tap()
+            }
+        } else {
+            // No error is good, just log that an error was not present.
+            print("No error message found.")
         }
 
         // Now wait for the email containing the OTP
@@ -201,6 +230,10 @@ final class SignInView {
 
     var emailInputContinue: XCUIElement {
         rootElement.buttons["Continue"]
+    }
+
+    var emailInputError: XCUIElement {
+        rootElement.staticTexts["Please enter valid email"]
     }
 
     /// OTP Code Input suitable for testing existence
