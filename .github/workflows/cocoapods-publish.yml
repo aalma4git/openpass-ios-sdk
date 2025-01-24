@@ -10,26 +10,31 @@ on:
 
 # https://github.com/actions/runner-images/?tab=readme-ov-file#available-images
 jobs:
-  build:
+  publish:
     runs-on: macos-14
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Push to Cocoapods trunk
+    - name: Set up
+      run: mkdir tmp
+
+    - name: Update podspecs
+      run: |
+        jq --arg VERSION "${{ inputs.version }}" '. | .version |= $VERSION | .source.tag |= $VERSION' OpenPass.podspec.json > tmp/OpenPass.podspec.json
+        jq --arg VERSION "${{ inputs.version }}" '. | .version |= $VERSION | .source.tag |= $VERSION' OpenPassObjC.podspec.json > tmp/OpenPassObjC.podspec.json
+
+    - name: Lint podspecs
+      run: |
+        pod spec lint tmp/OpenPass.podspec.json
+        pod spec lint tmp/OpenPassObjC.podspec.json
+
+    - name: Push podspecs to Cocoapods trunk
       env:
         COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
       run: |
-        mkdir -p tmp
-
-        # Update podspec
-        jq --arg VERSION "${{ inputs.version }}" '. | .version |= $VERSION | .source.tag |= $VERSION' OpenPass.podspec.json > tmp/OpenPass.podspec.json
-
-        # Lint podspec
-        pod spec lint tmp/OpenPass.podspec.json
-
-        # Publish podspec
         pod trunk push tmp/OpenPass.podspec.json
+        pod trunk push tmp/OpenPassObjC.podspec.json
 
-        # Clean up
-        rm -r tmp
+    - name: Clean up
+      run: rm -r tmp

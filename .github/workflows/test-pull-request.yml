@@ -38,8 +38,11 @@ jobs:
       - name: Lint code
         run: swiftlint lint --config .swiftlint.yml --strict --reporter github-actions-logging
 
-      - name: Lint pod spec
-        run: pod lib lint --verbose
+      - name: Lint OpenPass podspec
+        run: pod lib lint OpenPass.podspec.json --verbose
+
+      - name: Lint OpenPassObjC podspec
+        run: pod lib lint OpenPassObjC.podspec.json --verbose
 
   device-tests:
     uses: ./.github/workflows/device-tests.yml
