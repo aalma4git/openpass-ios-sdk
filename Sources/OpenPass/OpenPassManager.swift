@@ -69,7 +69,7 @@ public final class OpenPassManager {
     private let sdkName = "openpass-ios-sdk"
     
     /// The SDK version
-    public let sdkVersion = "1.1.1"
+    public let sdkVersion = "1.2.0"
     
     /// Keys and Values that need to be included in every network request
     private let baseRequestParameters: BaseRequestParameters

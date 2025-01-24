@@ -7,7 +7,10 @@ Releases are performed via [GitHub Releases](https://docs.github.com/en/reposito
 1. Confirm `sdkVersion` in `OpenPassManager` is expected version.
 2. Use GitHub Releases to create tag matching `sdkVersion` in `OpenPassManager` and publish release.
 3. Update `sdkVersion` in `OpenPassManager` to next minor version to support future development and merge into `main`.
-4. Update `version` and `source.tag` in `OpenPass.podspec.json` to next match the new version number.
+
+### CocoaPods
+
+Updating the version and tag in podspec.json files is unnecessary. The [cocoapods-publish](https://github.com/openpass-sso/openpass-ios-sdk/actions/workflows/cocoapods-publish.yml) will do this automatically when you publish.
 
 ### Version Numbers
 
