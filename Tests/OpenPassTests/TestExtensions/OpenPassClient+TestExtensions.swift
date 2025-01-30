@@ -30,10 +30,7 @@
 extension OpenPassClient {
     static let test = OpenPassClient(
         baseURL: "https://auth.myopenpass.com/",
-        baseRequestParameters: BaseRequestParameters(
-            sdkName: "OpenPassTest",
-            sdkVersion: "TEST"
-        ),
+        sdkName: "OpenPassTest",
         clientId: "test-client"
     )
 }

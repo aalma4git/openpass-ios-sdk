@@ -64,5 +64,13 @@ extension String {
         return try? JSONSerialization.jsonObject(with: componentData, options: []) as? [String: Any]
         
     }
-    
+
+    internal func trimmingTrailing(_ suffix: String) -> String {
+        if hasSuffix(suffix) {
+            String(dropLast(suffix.count))
+        } else {
+            self
+        }
+    }
+
 }

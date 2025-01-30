@@ -74,6 +74,23 @@ public final class OpenPassSettings: NSObject, @unchecked Sendable {
         }
     }
 
+    private var _sdkNameSuffix: String?
+
+    /// OpenPass SDK Name suffix. The default value is `nil`.
+    @objc
+    public var sdkNameSuffix: String? {
+        get {
+            queue.sync {
+                _sdkNameSuffix
+            }
+        }
+        set {
+            queue.sync {
+                _sdkNameSuffix = newValue
+            }
+        }
+    }
+
     @objc
     public static let shared = OpenPassSettings()
 }

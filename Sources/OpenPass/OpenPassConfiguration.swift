@@ -26,45 +26,68 @@
 
 import Foundation
 
+let openPassSdkVersion = "1.2.0"
+
 struct OpenPassConfiguration: Hashable, Sendable {
     static let defaultBaseURL = "https://auth.myopenpass.com/"
+
+    /// The SDK name. This is being send to the API via HTTP headers to track metrics.
+    static let defaultSdkName = "openpass-ios-sdk"
 
     /// - Parameters:
     ///   - baseURL: API base URL. If `nil`, the `defaultBaseURL` is used.
     ///   - clientId: Application client identifier
     ///   - redirectHost: The expected redirect host configured for your application
-    init(baseURL: String = defaultBaseURL, clientId: String, redirectHost: String) {
+    ///   - sdkNameSuffix: A suffix to apply to the default SDK name within request parameters
+    init(
+        baseURL: String = defaultBaseURL,
+        clientId: String,
+        redirectHost: String,
+        sdkNameSuffix: String = "",
+        sdkVersion: String = openPassSdkVersion
+    ) {
         self.baseURL = baseURL
         self.clientId = clientId
         self.redirectHost = redirectHost
+        self.sdkName = Self.defaultSdkName.appending(sdkNameSuffix)
+        self.sdkVersion = sdkVersion
     }
 
     /// Initializes a Configuration reading from the `Info.plist` first, and falling back to `OpenPassSettings`, if any.
     init() {
-        if let baseURLOverride = Bundle.main.object(forInfoDictionaryKey: "OpenPassBaseURL") as? String, !baseURLOverride.isEmpty {
-            self.baseURL = baseURLOverride
-        } else {
-            self.baseURL = Self.defaultBaseURL
-        }
-
-        if let bundleClientId = Bundle.main.object(forInfoDictionaryKey: "OpenPassClientId") as? String {
-            self.clientId = bundleClientId
-        } else if let settingsClientId = OpenPassSettings.shared.clientId {
-            self.clientId = settingsClientId
-        } else {
-            self.clientId = ""
-        }
-
-        if let bundleRedirectHost = Bundle.main.object(forInfoDictionaryKey: "OpenPassRedirectHost") as? String {
-            self.redirectHost = bundleRedirectHost
-        } else if let settingsRedirectHost = OpenPassSettings.shared.redirectHost {
-            self.redirectHost = settingsRedirectHost
-        } else {
-            self.redirectHost = ""
-        }
+        self.init(
+            baseURL: {
+                if let baseURLOverride = Bundle.main.object(forInfoDictionaryKey: "OpenPassBaseURL") as? String, !baseURLOverride.isEmpty {
+                    baseURLOverride
+                } else {
+                    Self.defaultBaseURL
+                }
+            }(),
+            clientId: {
+                if let bundleClientId = Bundle.main.object(forInfoDictionaryKey: "OpenPassClientId") as? String {
+                    bundleClientId
+                } else if let settingsClientId = OpenPassSettings.shared.clientId {
+                    settingsClientId
+                } else {
+                    ""
+                }
+            }(),
+            redirectHost: {
+                if let bundleRedirectHost = Bundle.main.object(forInfoDictionaryKey: "OpenPassRedirectHost") as? String {
+                    bundleRedirectHost
+                } else if let settingsRedirectHost = OpenPassSettings.shared.redirectHost {
+                    settingsRedirectHost
+                } else {
+                    ""
+                }
+            }(),
+            sdkNameSuffix: OpenPassSettings.shared.sdkNameSuffix ?? ""
+        )
     }
 
     var baseURL: String
     var clientId: String
     var redirectHost: String
+    var sdkName: String
+    var sdkVersion: String
 }

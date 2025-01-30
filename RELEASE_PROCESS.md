@@ -4,9 +4,9 @@ Releases are performed via [GitHub Releases](https://docs.github.com/en/reposito
 
 ### Steps
 
-1. Confirm `sdkVersion` in `OpenPassManager` is expected version.
+1. Confirm `sdkVersion` in `OpenPassConfiguration.swift` is expected version.
 2. Use GitHub Releases to create tag matching `sdkVersion` in `OpenPassManager` and publish release.
-3. Update `sdkVersion` in `OpenPassManager` to next minor version to support future development and merge into `main`.
+3. Update `sdkVersion` in `OpenPassConfiguration.swift` to next minor version to support future development and merge into `main`.
 
 ### CocoaPods
 

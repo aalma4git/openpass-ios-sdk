@@ -54,10 +54,6 @@ public final class OpenPassManager {
 
     let openPassClient: OpenPassClient
 
-    /// OpenPass Server URL for Web UX and API Server
-    /// Override default by setting `OpenPassBaseURL` in app's Info.plist
-    private let baseURL: String
-
     /// OpenPass Client Identifier
     /// Set `OpenPassClientId` in app's Info.plist
     private let clientId: String
@@ -65,15 +61,9 @@ public final class OpenPassManager {
     /// Client specific redirect host
     private let redirectHost: String
 
-    /// The SDK name. This is being send to the API via HTTP headers to track metrics.
-    private let sdkName = "openpass-ios-sdk"
-    
     /// The SDK version
-    public let sdkVersion = "1.2.0"
+    public let sdkVersion = openPassSdkVersion
     
-    /// Keys and Values that need to be included in every network request
-    private let baseRequestParameters: BaseRequestParameters
-
     private let tokenValidator: IDTokenValidation
 
     /// Internal dependency
@@ -92,24 +82,17 @@ public final class OpenPassManager {
         // These are also validated in `beginSignInUXFlow`
         assert(!configuration.clientId.isEmpty, "Missing `OpenPassClientId` in Info.plist")
         assert(!configuration.redirectHost.isEmpty, "Missing `OpenPassRedirectHost` in Info.plist")
-        baseRequestParameters = BaseRequestParameters(sdkName: sdkName, sdkVersion: sdkVersion)
-        self.baseURL = configuration.baseURL
         self.clientId = configuration.clientId
         self.redirectHost = configuration.redirectHost
 
         self.openPassClient = OpenPassClient(
-            baseURL: self.baseURL,
-            baseRequestParameters: baseRequestParameters,
-            clientId: clientId
+            configuration: configuration
         )
 
-        let issuerID: String
-        if self.baseURL.hasSuffix("/") {
-            issuerID = String(self.baseURL.dropLast(1))
-        } else {
-            issuerID = self.baseURL
-        }
-        self.tokenValidator = tokenValidator ?? IDTokenValidator(clientID: clientId, issuerID: issuerID)
+        self.tokenValidator = tokenValidator ?? IDTokenValidator(
+            clientID: clientId,
+            issuerID: configuration.baseURL.trimmingTrailing("/")
+        )
         self.clock = clock
         // Check for cached signin
         self.openPassTokens = KeychainManager.main.getOpenPassTokensFromKeychain()

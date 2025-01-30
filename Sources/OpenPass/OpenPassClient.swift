@@ -31,14 +31,33 @@ import Foundation
 @available(iOS 13.0, tvOS 16.0, *)
 internal final class OpenPassClient {
     
+    /// OpenPass Server URL for Web UX and API Server
+    /// Override default by setting `OpenPassBaseURL` in app's Info.plist
     private let baseURL: String
-    private let baseRequestParameters: BaseRequestParameters
+
+    /// Keys and Values that need to be included in every network request
+    let baseRequestParameters: BaseRequestParameters
+
     let clientId: String
     private let session = URLSession.shared
 
-    init(baseURL: String, baseRequestParameters: BaseRequestParameters, clientId: String) {
+    convenience init(configuration: OpenPassConfiguration) {
+        self.init(
+            baseURL: configuration.baseURL,
+            sdkName: configuration.sdkName,
+            sdkVersion: configuration.sdkVersion,
+            clientId: configuration.clientId
+        )
+    }
+
+    init(
+        baseURL: String,
+        sdkName: String,
+        sdkVersion: String = openPassSdkVersion,
+        clientId: String
+    ) {
         self.baseURL = baseURL
-        self.baseRequestParameters = baseRequestParameters
+        self.baseRequestParameters = BaseRequestParameters(sdkName: sdkName, sdkVersion: sdkVersion)
         self.clientId = clientId
     }
 

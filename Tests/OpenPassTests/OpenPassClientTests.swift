@@ -30,7 +30,52 @@ import XCTest
 
 @available(iOS 13.0, *)
 final class OpenPassClientTests: XCTestCase {
-    
+
+    func testBaseRequestParameters() async throws {
+        let client = OpenPassClient(
+            configuration: .init(
+                clientId: "id",
+                redirectHost: "host",
+                sdkVersion: "1.0.0"
+            )
+        )
+        XCTAssertEqual(
+            client.baseRequestParameters,
+            .init(
+                sdkName: "openpass-ios-sdk",
+                sdkVersion: "1.0.0"
+            )
+        )
+    }
+
+    func testBaseRequestParametersWithSdkNameSuffix() async throws {
+        let client = OpenPassClient(
+            configuration: .init(
+                clientId: "id",
+                redirectHost: "host",
+                sdkNameSuffix: "-testSuffix",
+                sdkVersion: "0.a.1"
+            )
+        )
+        XCTAssertEqual(
+            client.baseRequestParameters,
+            .init(
+                sdkName: "openpass-ios-sdk-testSuffix",
+                sdkVersion: "0.a.1"
+            )
+        )
+    }
+
+    func testBaseRequestParametersWithSdkNameSuffixFromSettings() async throws {
+        OpenPassSettings.shared.sdkNameSuffix = "-settings-suffix"
+        let client = OpenPassClient(
+            configuration: .init()
+        )
+        OpenPassSettings.shared.sdkNameSuffix = nil
+        let sdkName = try XCTUnwrap(client.baseRequestParameters.asHeaderPairs["SDK-Name"])
+        XCTAssertEqual(sdkName, "openpass-ios-sdk-settings-suffix")
+    }
+
     /// 🟩  `POST /v1/api/token` - HTTP 200
     func testGetTokenFromAuthCodeSuccess() async throws {
         try HTTPStub.shared.stubAlways(fixture: "openpasstokens-200")

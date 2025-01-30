@@ -55,15 +55,17 @@ final class OpenPassManagerTests: XCTestCase {
             "/v1/api/token": ("openpasstokens-200", 200),
             "/.well-known/jwks": ("jwks", 200),
         ]
+        let defaultConfiguration = OpenPassConfiguration(
+            clientId: "test-client",
+            redirectHost: "com.openpass"
+        )
         // overrides in fixtures replace defaults
         let fixtures = defaultFixtures.merging(overrideFixtures) { $1 }
         try HTTPStub.shared.stub(fixtures: fixtures)
 
         let flow = SignInFlow(
             openPassClient: OpenPassClient(
-                baseURL: OpenPassConfiguration.defaultBaseURL,
-                baseRequestParameters: BaseRequestParameters(sdkName: "openpass-ios-sdk", sdkVersion: "1.0"),
-                clientId: "test-client"
+                configuration: configuration ?? defaultConfiguration
             ),
             tokenValidator: tokenValidator,
             authenticationSession: TestAuthenticationSessionProvider(authenticationSession ?? { _, _ in OpenPassManagerTests.defaultAuthenticationCallbackURL }),
@@ -284,6 +286,26 @@ final class OpenPassManagerTests: XCTestCase {
             return Self.defaultAuthenticationCallbackURL
         }
         let _ = try await _testSignInUXFlow(
+            authenticationSession: session,
+            tokenValidator: IDTokenValidationStub.valid
+        )
+    }
+
+    func testAuthenticationSessionURLSDKNameSuffix() async throws {
+        let session: TestAuthenticationSession = { url, callbackURLScheme in
+            let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
+            let sdkName = (components.queryItems ?? [])
+                .first { $0.name == "sdk_name" }
+            XCTAssertEqual(sdkName?.value, "openpass-ios-sdk-test-suffix")
+
+            return Self.defaultAuthenticationCallbackURL
+        }
+        let _ = try await _testSignInUXFlow(
+            configuration: .init(
+                clientId: "test-client",
+                redirectHost: "",
+                sdkNameSuffix: "-test-suffix"
+            ),
             authenticationSession: session,
             tokenValidator: IDTokenValidationStub.valid
         )
