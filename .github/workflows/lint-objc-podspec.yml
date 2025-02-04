@@ -1,0 +1,24 @@
+name: Lint Pull Requests for OpenPassObjC
+
+on:
+  pull_request:
+    paths:
+      - OpenPassObjC.podspec.json
+
+  # this allows us to manually run this job
+  workflow_dispatch:
+
+jobs:
+
+  lint-podspec:
+    name: Lint OpenPassObjC Podspec
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 16.1
+        run: sudo xcode-select -s /Applications/Xcode_16.1.app
+
+      - name: Lint OpenPass podspec
+        run: pod lib lint OpenPassObjC.podspec.json --verbose

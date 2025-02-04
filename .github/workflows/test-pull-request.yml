@@ -41,9 +41,6 @@ jobs:
       - name: Lint OpenPass podspec
         run: pod lib lint OpenPass.podspec.json --verbose
 
-      - name: Lint OpenPassObjC podspec
-        run: pod lib lint OpenPassObjC.podspec.json --verbose
-
   device-tests:
     uses: ./.github/workflows/device-tests.yml
     with: 

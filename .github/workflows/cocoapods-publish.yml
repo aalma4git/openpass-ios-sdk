@@ -3,10 +3,16 @@ name: cocoapods-publish
 on:
   workflow_dispatch:
     inputs:
-        version:
-          description: 'Tag name for release (e.g. "1.0.0")'
-          required: true
-          type: string
+      name:
+        type: choice
+        description: CocoaPod to Publish
+        options: 
+        - OpenPass
+        - OpenPassObjC
+      version:
+        description: 'Tag name for release (e.g. "1.0.0")'
+        required: true
+        type: string
 
 # https://github.com/actions/runner-images/?tab=readme-ov-file#available-images
 jobs:
@@ -19,22 +25,19 @@ jobs:
     - name: Set up
       run: mkdir tmp
 
-    - name: Update podspecs
+    - name: Update podspec
       run: |
-        jq --arg VERSION "${{ inputs.version }}" '. | .version |= $VERSION | .source.tag |= $VERSION' OpenPass.podspec.json > tmp/OpenPass.podspec.json
-        jq --arg VERSION "${{ inputs.version }}" '. | .version |= $VERSION | .source.tag |= $VERSION' OpenPassObjC.podspec.json > tmp/OpenPassObjC.podspec.json
-
-    - name: Lint podspecs
+        jq --arg VERSION "${{ inputs.version }}" '. | .version |= $VERSION | .source.tag |= $VERSION' ${{ github.event.inputs.name }}.podspec.json > tmp/${{ github.event.inputs.name }}.podspec.json
+        
+    - name: Lint podspec
       run: |
-        pod spec lint tmp/OpenPass.podspec.json
-        pod spec lint tmp/OpenPassObjC.podspec.json
+        pod spec lint tmp/${{ github.event.inputs.name }}.podspec.json
 
-    - name: Push podspecs to Cocoapods trunk
+    - name: Push podspec to Cocoapods trunk
       env:
         COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
       run: |
-        pod trunk push tmp/OpenPass.podspec.json
-        pod trunk push tmp/OpenPassObjC.podspec.json
+        pod trunk push tmp/${{ github.event.inputs.name }}.podspec.json
 
     - name: Clean up
       run: rm -r tmp
