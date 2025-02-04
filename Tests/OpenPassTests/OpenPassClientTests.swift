@@ -76,6 +76,16 @@ final class OpenPassClientTests: XCTestCase {
         XCTAssertEqual(sdkName, "openpass-ios-sdk-settings-suffix")
     }
 
+    func testBaseURLFromConfiguration() async throws {
+        OpenPassSettings.shared.environment = .custom(url: URL(string: "https://tests.example.com/")!)
+        let client = OpenPassClient(
+            configuration: .init()
+        )
+        OpenPassSettings.shared.environment = nil
+        let request = client.urlRequest(Request<Void>(path: "/test"))
+        XCTAssertEqual(request.url?.absoluteString, "https://tests.example.com/test")
+    }
+
     /// 🟩  `POST /v1/api/token` - HTTP 200
     func testGetTokenFromAuthCodeSuccess() async throws {
         try HTTPStub.shared.stubAlways(fixture: "openpasstokens-200")

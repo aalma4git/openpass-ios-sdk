@@ -74,6 +74,24 @@ public final class OpenPassSettings: NSObject, @unchecked Sendable {
         }
     }
 
+    private var _environment: Environment?
+
+    /// OpenPass API Environment. The default value is `nil`, which result in Production being used.
+    /// Setting a value of `Environment.custom` is equivalent to providing a value for `OpenPassBaseURL` in your Info.plist,
+    /// however any value in the Info.plist will override this setting.
+    public var environment: Environment? {
+        get {
+            queue.sync {
+                _environment
+            }
+        }
+        set {
+            queue.sync {
+                _environment = newValue
+            }
+        }
+    }
+
     private var _sdkNameSuffix: String?
 
     /// OpenPass SDK Name suffix. The default value is `nil`.

@@ -124,12 +124,10 @@ internal final class OpenPassClient {
 
     // MARK: - Request Execution
 
-    private func urlRequest<ResponseType>(
-        _ request: Request<ResponseType>,
-        baseURL: URL,
-        httpHeaders: [String: String] = [:]
+    internal func urlRequest<ResponseType>(
+        _ request: Request<ResponseType>
     ) -> URLRequest {
-        var urlComponents = URLComponents(url: baseURL, resolvingAgainstBaseURL: true)!
+        var urlComponents = URLComponents(url: URL(string: baseURL)!, resolvingAgainstBaseURL: true)!
         urlComponents.path = request.path
 
         var urlRequest = URLRequest(url: urlComponents.url!)
@@ -141,7 +139,7 @@ internal final class OpenPassClient {
             urlRequest.httpBody = encodedPostBody(request.queryItems)
         }
 
-        httpHeaders.forEach { field, value in
+        baseRequestParameters.asHeaderPairs.forEach { field, value in
             urlRequest.addValue(value, forHTTPHeaderField: field)
         }
         return urlRequest
@@ -156,9 +154,7 @@ internal final class OpenPassClient {
 
     private func execute<ResponseType: Decodable>(_ request: Request<ResponseType>) async throws -> ResponseType {
         let urlRequest = urlRequest(
-            request,
-            baseURL: URL(string: baseURL)!,
-            httpHeaders: baseRequestParameters.asHeaderPairs
+            request
         )
         let data = try await session.data(for: urlRequest).0
         let decoder = JSONDecoder()

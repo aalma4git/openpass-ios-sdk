@@ -59,6 +59,8 @@ struct OpenPassConfiguration: Hashable, Sendable {
             baseURL: {
                 if let baseURLOverride = Bundle.main.object(forInfoDictionaryKey: "OpenPassBaseURL") as? String, !baseURLOverride.isEmpty {
                     baseURLOverride
+                } else if let environment = OpenPassSettings.shared.environment {
+                    environment.endpoint.absoluteString
                 } else {
                     Self.defaultBaseURL
                 }
