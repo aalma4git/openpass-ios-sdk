@@ -36,6 +36,7 @@ final class OpenPassClientTests: XCTestCase {
             configuration: .init(
                 clientId: "id",
                 redirectHost: "host",
+                isLoggingEnabled: false,
                 sdkVersion: "1.0.0"
             )
         )
@@ -53,6 +54,7 @@ final class OpenPassClientTests: XCTestCase {
             configuration: .init(
                 clientId: "id",
                 redirectHost: "host",
+                isLoggingEnabled: false,
                 sdkNameSuffix: "-testSuffix",
                 sdkVersion: "0.a.1"
             )

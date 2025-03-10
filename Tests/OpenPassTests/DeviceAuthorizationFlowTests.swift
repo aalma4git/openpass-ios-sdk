@@ -45,6 +45,7 @@ extension DeviceAuthorizationFlow {
         DeviceAuthorizationFlow(
             openPassClient: openPassClient,
             tokenValidator: tokenValidator,
+            isLoggingEnabled: false,
             dateGenerator: dateGenerator,
             clock: clock,
             tokensObserver: tokensObserver

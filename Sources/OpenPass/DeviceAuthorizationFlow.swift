@@ -25,6 +25,7 @@
 //
 
 import Foundation
+import OSLog
 
 /// A client for Device Authorization, a two-step flow where an input constrained device such as a TV requests a code
 /// and another device inputs this code and provides authorization.
@@ -63,17 +64,22 @@ public final class DeviceAuthorizationFlow {
     private let tokenValidator: IDTokenValidation
     private let tokensObserver: ((OpenPassTokens) async -> Void)
     private let dateGenerator: DateGenerator
+    private let log: OSLog
     private let clock: Clock
 
     internal init(
         openPassClient: OpenPassClient,
         tokenValidator: IDTokenValidation,
+        isLoggingEnabled: Bool,
         dateGenerator: DateGenerator = .init { Date() },
         clock: Clock = RealClock(),
         tokensObserver: @escaping ((OpenPassTokens) async -> Void)
     ) {
         self.openPassClient = openPassClient
         self.tokenValidator = tokenValidator
+        self.log = isLoggingEnabled
+            ? .init(subsystem: "com.myopenpass", category: "DeviceAuthorizationFlow")
+            : .disabled
         self.dateGenerator = dateGenerator
         self.clock = clock
         self.tokensObserver = tokensObserver
@@ -165,8 +171,13 @@ public final class DeviceAuthorizationFlow {
     /// - Parameter idToken: ID Token To Verify
     /// - Returns: true if valid, false if invalid
     private func verify(_ idToken: IDToken) async throws -> Bool {
-        let jwks = try await openPassClient.fetchJWKS()
-        return try tokenValidator.validate(idToken, jwks: jwks)
+        do {
+            let jwks = try await openPassClient.fetchJWKS()
+            return try tokenValidator.validate(idToken, jwks: jwks)
+        } catch {
+            os_log("Error verifying tokens from flow", log: log, type: .error)
+            throw error
+        }
     }
 }
 

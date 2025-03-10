@@ -31,6 +31,7 @@ extension OpenPassClient {
     static let test = OpenPassClient(
         baseURL: "https://auth.myopenpass.com/",
         sdkName: "OpenPassTest",
-        clientId: "test-client"
+        clientId: "test-client",
+        isLoggingEnabled: false
     )
 }

@@ -109,6 +109,23 @@ public final class OpenPassSettings: NSObject, @unchecked Sendable {
         }
     }
 
+    private var _isLoggingEnabled = false
+
+    /// Enable OS logging. The default value is `false`.
+    @objc
+    public var isLoggingEnabled: Bool {
+        get {
+            queue.sync {
+                _isLoggingEnabled
+            }
+        }
+        set {
+            queue.sync {
+                _isLoggingEnabled = newValue
+            }
+        }
+    }
+
     @objc
     public static let shared = OpenPassSettings()
 }

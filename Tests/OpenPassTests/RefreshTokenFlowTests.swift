@@ -41,6 +41,7 @@ final class RefreshTokenFlowTests: XCTestCase {
             openPassClient: .test,
             clientId: "client-id",
             tokenValidator: IDTokenValidationStub.valid,
+            isLoggingEnabled: false,
             tokensObserver: { _ in }
         )
         let tokens = try await flow.refreshTokens("refresh-token")
@@ -57,6 +58,7 @@ final class RefreshTokenFlowTests: XCTestCase {
             openPassClient: .test,
             clientId: "client-id",
             tokenValidator: IDTokenValidationStub.valid,
+            isLoggingEnabled: false,
             tokensObserver: { _ in }
         )
         await assertThrowsOpenPassError(
@@ -81,6 +83,7 @@ final class RefreshTokenFlowTests: XCTestCase {
             openPassClient: .test,
             clientId: "client-id",
             tokenValidator: IDTokenValidationStub.invalid,
+            isLoggingEnabled: false,
             tokensObserver: { _ in }
         )
         await assertThrowsOpenPassError(

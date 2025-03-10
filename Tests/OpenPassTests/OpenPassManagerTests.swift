@@ -55,10 +55,7 @@ final class OpenPassManagerTests: XCTestCase {
             "/v1/api/token": ("openpasstokens-200", 200),
             "/.well-known/jwks": ("jwks", 200),
         ]
-        let defaultConfiguration = OpenPassConfiguration(
-            clientId: "test-client",
-            redirectHost: "com.openpass"
-        )
+        let defaultConfiguration = OpenPassConfiguration.testConfiguration
         // overrides in fixtures replace defaults
         let fixtures = defaultFixtures.merging(overrideFixtures) { $1 }
         try HTTPStub.shared.stub(fixtures: fixtures)
@@ -68,9 +65,10 @@ final class OpenPassManagerTests: XCTestCase {
                 configuration: configuration ?? defaultConfiguration
             ),
             tokenValidator: tokenValidator,
+            redirectHost: "com.openpass",
+            isLoggingEnabled: false,
             authenticationSession: TestAuthenticationSessionProvider(authenticationSession ?? { _, _ in OpenPassManagerTests.defaultAuthenticationCallbackURL }),
             authenticationStateGenerator: .init { authenticationState },
-            redirectHost: "com.openpass",
             tokensObserver: { _ in }
         )
 
@@ -172,10 +170,7 @@ final class OpenPassManagerTests: XCTestCase {
         ])
 
         let manager = OpenPassManager(
-            configuration: OpenPassConfiguration(
-                clientId: "test-client",
-                redirectHost: "com.openpass"
-            ),
+            configuration: .testConfiguration,
             tokenValidator: IDTokenValidationStub.valid
         )
         let flow = manager.refreshTokenFlow
@@ -191,10 +186,7 @@ final class OpenPassManagerTests: XCTestCase {
     @MainActor
     func testTokenObservation() async throws {
         let manager = OpenPassManager(
-            configuration: OpenPassConfiguration(
-                clientId: "test-client",
-                redirectHost: "com.openpass"
-            )
+            configuration: .testConfiguration
         )
 
         // Retrieve the stream's iterator so that we can manually iterate and assert against each value
@@ -234,10 +226,7 @@ final class OpenPassManagerTests: XCTestCase {
         ])
 
         let manager = OpenPassManager(
-            configuration: OpenPassConfiguration(
-                clientId: "test-client",
-                redirectHost: "com.openpass"
-            ),
+            configuration: .testConfiguration,
             tokenValidator: IDTokenValidationStub.valid,
             clock: ImmediateClock()
         )
@@ -304,6 +293,7 @@ final class OpenPassManagerTests: XCTestCase {
             configuration: .init(
                 clientId: "test-client",
                 redirectHost: "",
+                isLoggingEnabled: false,
                 sdkNameSuffix: "-test-suffix"
             ),
             authenticationSession: session,
@@ -343,9 +333,10 @@ final class OpenPassManagerTests: XCTestCase {
         let flow = SignInFlow(
             openPassClient: manager.openPassClient,
             tokenValidator: IDTokenValidationStub.valid,
+            redirectHost: configuration.redirectHost,
+            isLoggingEnabled: false,
             authenticationSession: TestAuthenticationSessionProvider(session),
             authenticationStateGenerator: .init { "state123" },
-            redirectHost: configuration.redirectHost,
             tokensObserver: { _ in }
         )
         let _ = try await flow.beginSignIn()
@@ -360,10 +351,7 @@ final class OpenPassManagerTests: XCTestCase {
         let codeChallenge = "rrw_o86gcCbS5BGxT-FUC-AoVjDyMXpRDiYjXUR0Kak"
 
         let manager = OpenPassManager(
-            configuration: OpenPassConfiguration(
-                clientId: "test-client",
-                redirectHost: "com.openpass"
-            )
+            configuration: .testConfiguration
         )
         let generatedCodeChallenge = manager.generateCodeChallengeFromVerifierCode(verifier: codeVerifier)
 
@@ -396,6 +384,14 @@ struct IDTokenValidationStub: IDTokenValidation {
 
     static let valid = Self(valid: true)
     static let invalid = Self(valid: false)
+}
+
+extension OpenPassConfiguration {
+    static let testConfiguration = OpenPassConfiguration(
+        clientId: "test-client",
+        redirectHost: "com.openpass",
+        isLoggingEnabled: false
+    )
 }
 
 internal func assertThrowsOpenPassError<T>(

@@ -26,6 +26,7 @@
 
 import AuthenticationServices
 import Foundation
+import OSLog
 import Security
 
 /// Primary app interface for integrating with OpenPass SDK.
@@ -66,6 +67,9 @@ public final class OpenPassManager {
     
     private let tokenValidator: IDTokenValidation
 
+    private let isLoggingEnabled: Bool
+    private let log: OSLog
+
     /// Internal dependency
     private let clock: Clock
 
@@ -84,6 +88,7 @@ public final class OpenPassManager {
         assert(!configuration.redirectHost.isEmpty, "Missing `OpenPassRedirectHost` in Info.plist")
         self.clientId = configuration.clientId
         self.redirectHost = configuration.redirectHost
+        self.isLoggingEnabled = configuration.isLoggingEnabled
 
         self.openPassClient = OpenPassClient(
             configuration: configuration
@@ -93,6 +98,9 @@ public final class OpenPassManager {
             clientID: clientId,
             issuerID: configuration.baseURL.trimmingTrailing("/")
         )
+        self.log = isLoggingEnabled
+            ? OSLog(subsystem: "com.myopenpass", category: "OpenPassManager")
+            : .disabled
         self.clock = clock
         // Check for cached signin
         self.openPassTokens = KeychainManager.main.getOpenPassTokensFromKeychain()
@@ -101,6 +109,8 @@ public final class OpenPassManager {
     /// Signs user out by clearing all sign-in data currently in SDK.  This includes keychain and in-memory data.
     /// - Returns: True if signed out, False if still signed in.
     public func signOut() -> Bool {
+        os_log("Signing Out", log: log, type: .debug)
+        os_log("Clearing Tokens", log: log, type: .debug)
         if KeychainManager.main.deleteOpenPassTokensFromKeychain() {
             self.openPassTokens = nil
             return true
@@ -132,7 +142,8 @@ public final class OpenPassManager {
         SignInFlow(
             openPassClient: openPassClient,
             tokenValidator: tokenValidator,
-            redirectHost: redirectHost
+            redirectHost: redirectHost,
+            isLoggingEnabled: isLoggingEnabled
         ) { [weak self] tokens in
             guard let self else {
                 return
@@ -153,7 +164,8 @@ public final class OpenPassManager {
         RefreshTokenFlow(
             openPassClient: openPassClient,
             clientId: clientId,
-            tokenValidator: tokenValidator
+            tokenValidator: tokenValidator,
+            isLoggingEnabled: isLoggingEnabled
         ) { [weak self] tokens in
             guard let self else {
                 return
@@ -168,6 +180,7 @@ public final class OpenPassManager {
         DeviceAuthorizationFlow(
             openPassClient: openPassClient,
             tokenValidator: tokenValidator,
+            isLoggingEnabled: isLoggingEnabled,
             clock: clock
         ) { [weak self] tokens in
             guard let self else {
@@ -179,8 +192,10 @@ public final class OpenPassManager {
 
     /// Utility function for persisting OpenPassTokens data after its been loaded from the API Server.
     internal func setOpenPassTokens(_ openPassTokens: OpenPassTokens) {
+        os_log("Updating Tokens", log: log, type: .debug)
         assert(openPassTokens.idToken != nil, "ID Token must not be nil")
         self.openPassTokens = openPassTokens
+        os_log("Saving Tokens", log: log, type: .debug)
         KeychainManager.main.saveOpenPassTokensToKeychain(openPassTokens)
     }
 }

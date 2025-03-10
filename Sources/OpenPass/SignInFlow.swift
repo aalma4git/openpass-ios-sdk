@@ -27,6 +27,7 @@
 import AuthenticationServices
 import CryptoKit
 import Foundation
+import OSLog
 
 @MainActor
 public final class SignInFlow {
@@ -48,22 +49,28 @@ public final class SignInFlow {
         "com.myopenpass.auth.\(openPassClient.clientId)"
     }
 
+    private let log: OSLog
+
     /// Client specific redirect host
     private let redirectHost: String
 
     init(
         openPassClient: OpenPassClient,
         tokenValidator: IDTokenValidation,
+        redirectHost: String,
+        isLoggingEnabled: Bool,
         authenticationSession: AuthenticationSession = WebAuthenticationSession(),
         authenticationStateGenerator: RandomStringGenerator = .init { randomString(length: 32) },
-        redirectHost: String,
         tokensObserver: @escaping ((OpenPassTokens) async -> Void)
     ) {
         self.openPassClient = openPassClient
         self.tokenValidator = tokenValidator
+        self.redirectHost = redirectHost
+        self.log = isLoggingEnabled
+            ? .init(subsystem: "com.myopenpass", category: "SignInFlow")
+            : .disabled
         self.authenticationSession = authenticationSession
         self.authenticationStateGenerator = authenticationStateGenerator
-        self.redirectHost = redirectHost
         self.tokensObserver = tokensObserver
     }
 
@@ -143,8 +150,13 @@ public final class SignInFlow {
     /// - Parameter idToken: ID Token To Verify
     /// - Returns: true if valid, false if invalid
     private func verify(_ idToken: IDToken) async throws -> Bool {
-        let jwks = try await openPassClient.fetchJWKS()
-        return try tokenValidator.validate(idToken, jwks: jwks)
+        do {
+            let jwks = try await openPassClient.fetchJWKS()
+            return try tokenValidator.validate(idToken, jwks: jwks)
+        } catch {
+            os_log("Error verifying tokens from flow", log: log, type: .error)
+            throw error
+        }
     }
 }
 

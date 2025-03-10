@@ -32,7 +32,7 @@ import Foundation
 extension OpenPassManagerObjC {
     @objc
     public static var testInstance: OpenPassManagerObjC {
-        Self.init(manager: .init(configuration: .init(clientId: "test-client", redirectHost: "test-redirect-host")))
+        Self.init(manager: .init(configuration: .init(clientId: "test-client", redirectHost: "test-redirect-host", isLoggingEnabled: false)))
     }
 
     @objc

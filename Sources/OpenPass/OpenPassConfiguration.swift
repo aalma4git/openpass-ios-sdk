@@ -43,12 +43,14 @@ struct OpenPassConfiguration: Hashable, Sendable {
         baseURL: String = defaultBaseURL,
         clientId: String,
         redirectHost: String,
+        isLoggingEnabled: Bool,
         sdkNameSuffix: String = "",
         sdkVersion: String = openPassSdkVersion
     ) {
         self.baseURL = baseURL
         self.clientId = clientId
         self.redirectHost = redirectHost
+        self.isLoggingEnabled = isLoggingEnabled
         self.sdkName = Self.defaultSdkName.appending(sdkNameSuffix)
         self.sdkVersion = sdkVersion
     }
@@ -83,6 +85,7 @@ struct OpenPassConfiguration: Hashable, Sendable {
                     ""
                 }
             }(),
+            isLoggingEnabled: OpenPassSettings.shared.isLoggingEnabled,
             sdkNameSuffix: OpenPassSettings.shared.sdkNameSuffix ?? ""
         )
     }
@@ -92,4 +95,5 @@ struct OpenPassConfiguration: Hashable, Sendable {
     var redirectHost: String
     var sdkName: String
     var sdkVersion: String
+    var isLoggingEnabled: Bool
 }

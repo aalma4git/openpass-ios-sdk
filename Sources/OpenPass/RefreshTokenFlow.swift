@@ -25,6 +25,7 @@
 //
 
 import Foundation
+import OSLog
 
 @MainActor
 public final class RefreshTokenFlow {
@@ -33,15 +34,21 @@ public final class RefreshTokenFlow {
     private let tokenValidator: IDTokenValidation
     private let tokensObserver: ((OpenPassTokens) async -> Void)
 
+    private let log: OSLog
+    
     init(
         openPassClient: OpenPassClient,
         clientId: String,
         tokenValidator: IDTokenValidation,
+        isLoggingEnabled: Bool,
         tokensObserver: @escaping ((OpenPassTokens) async -> Void)
     ) {
         self.openPassClient = openPassClient
         self.clientId = clientId
         self.tokenValidator = tokenValidator
+        self.log = isLoggingEnabled
+            ? .init(subsystem: "com.myopenpass", category: "RefreshTokenFlow")
+            : .disabled
         self.tokensObserver = tokensObserver
     }
 
@@ -62,7 +69,12 @@ public final class RefreshTokenFlow {
     /// - Parameter idToken: ID Token To Verify
     /// - Returns: true if valid, false if invalid
     private func verify(_ idToken: IDToken) async throws -> Bool {
-        let jwks = try await openPassClient.fetchJWKS()
-        return try tokenValidator.validate(idToken, jwks: jwks)
+        do {
+            let jwks = try await openPassClient.fetchJWKS()
+            return try tokenValidator.validate(idToken, jwks: jwks)
+        } catch {
+            os_log("Error verifying tokens from flow", log: log, type: .error)
+            throw error
+        }
     }
 }
