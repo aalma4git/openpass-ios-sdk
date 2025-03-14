@@ -66,10 +66,10 @@ struct OpenPassTokensView: View {
                 .font(Font.system(size: 16, weight: .regular))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text(LocalizedStringKey("root.label.openpassTokens.expiresIn"))
+            Text(LocalizedStringKey("root.label.openpassTokens.expiresAt"))
                 .font(Font.system(size: 18, weight: .bold))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text(viewModel.expiresIn)
+            Text(viewModel.expiresAt)
                 .font(Font.system(size: 16, weight: .regular))
                 .frame(maxWidth: .infinity, alignment: .leading)
 

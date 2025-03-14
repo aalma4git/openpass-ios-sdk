@@ -29,7 +29,7 @@ import SwiftUI
 
 struct DeviceAuthorizationView: View {
     
-    @ObservedObject
+    @StateObject
     private var viewModel = DeviceAuthorizationViewModel()
 
     @Binding var showDeviceAuthorizationView: Bool

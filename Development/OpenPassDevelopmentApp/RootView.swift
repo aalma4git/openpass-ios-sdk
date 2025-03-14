@@ -81,6 +81,12 @@ struct RootView: View {
         .sheet(isPresented: $viewModel.showDAF, content: {
             DeviceAuthorizationView(showDeviceAuthorizationView: $viewModel.showDAF)
         })
+        .onAppear {
+            viewModel.startObservingTokens()
+        }
+        .onDisappear {
+            viewModel.stopObservingTokens()
+        }
     }
 }
 extension View {

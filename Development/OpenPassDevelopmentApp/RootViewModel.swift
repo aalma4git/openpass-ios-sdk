@@ -31,18 +31,14 @@ import SwiftUI
 
 @MainActor
 class RootViewModel: ObservableObject {
-    
+    private let manager: OpenPassManager = .shared
+    private var observeTokensTask: Task<Void, Never>?
+
     @Published private(set) var titleText = LocalizedStringKey("common.openpasssdk")
-    @Published private(set) var openPassTokens: OpenPassTokens? = OpenPassManager.shared.openPassTokens
+    @Published private(set) var openPassTokens: OpenPassTokens?
     @Published private(set) var error: Error?
-    @Published var showDAF: Bool = false {
-        didSet {
-            if !showDAF {
-                self.openPassTokens = OpenPassManager.shared.openPassTokens
-            }
-        }
-    }
-    
+    @Published var showDAF: Bool = false
+
     var canRefreshTokens: Bool {
         openPassTokens?.refreshToken != nil
     }
@@ -70,9 +66,9 @@ class RootViewModel: ObservableObject {
         return NSLocalizedString("common.nil", comment: "")
     }
     
-    var expiresIn: String {
-        if let token = openPassTokens?.expiresIn {
-            return String(token)
+    var expiresAt: String {
+        if let expiry = openPassTokens?.idTokenExpiry {
+            return expiry.description
         }
         return NSLocalizedString("common.nil", comment: "")
     }
@@ -104,18 +100,32 @@ class RootViewModel: ObservableObject {
         }
         return NSLocalizedString("common.nil", comment: "")
     }
-    
+
+    init() {
+        openPassTokens = manager.openPassTokens
+    }
+
     // MARK: - UX Flows
-    
+
+    public func startObservingTokens() {
+        observeTokensTask = Task {
+            for await value in manager.openPassTokensValues() {
+                self.openPassTokens = value
+            }
+        }
+    }
+
+    public func stopObservingTokens() {
+        observeTokensTask?.cancel()
+        observeTokensTask = nil
+    }
+
     public func startSignInUXFlow() {
-                
+        signOut()
         Task(priority: .userInitiated) {
             do {
-                try await OpenPassManager.shared.signInFlow.beginSignIn()
-                self.openPassTokens = OpenPassManager.shared.openPassTokens
-                self.error = nil
+                try await manager.signInFlow.beginSignIn()
             } catch {
-                self.openPassTokens = nil
                 self.error = error
             }
         }
@@ -129,7 +139,6 @@ class RootViewModel: ObservableObject {
     // MARK: - Sign In Data Access
 
     public func refreshTokenFlow() {
-        let manager = OpenPassManager.shared
         guard let refreshToken = manager.openPassTokens?.refreshToken else {
             // Button should be disabled
             return
@@ -138,7 +147,7 @@ class RootViewModel: ObservableObject {
         Task(priority: .userInitiated) {
             do {
                 let flow = manager.refreshTokenFlow
-                self.openPassTokens = try await flow.refreshTokens(refreshToken)
+                try await _ = flow.refreshTokens(refreshToken)
             }
         }
     }
@@ -146,9 +155,7 @@ class RootViewModel: ObservableObject {
     // MARK: - Sign Out Data Access
 
     public func signOut() {
-        if OpenPassManager.shared.signOut() {
-            self.openPassTokens = nil
-        }
+        _ = manager.signOut()
         self.error = nil
     }
     
