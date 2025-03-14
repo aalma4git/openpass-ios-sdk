@@ -45,7 +45,7 @@ final class OpenPassManagerTests: XCTestCase {
     @MainActor
     /// Test helper. Runs the sign in flow with default, 'success' parameters. Override parameters to test failure scenarios.
     private func _testSignInUXFlow(
-        configuration: OpenPassConfiguration? = nil,
+        client: OpenPassClient? = nil,
         authenticationState: String = "state123",
         authenticationSession: TestAuthenticationSession? = nil,
         overrideFixtures: [String:(String, Int)] = [:],
@@ -55,15 +55,12 @@ final class OpenPassManagerTests: XCTestCase {
             "/v1/api/token": ("openpasstokens-200", 200),
             "/.well-known/jwks": ("jwks", 200),
         ]
-        let defaultConfiguration = OpenPassConfiguration.testConfiguration
         // overrides in fixtures replace defaults
         let fixtures = defaultFixtures.merging(overrideFixtures) { $1 }
         try HTTPStub.shared.stub(fixtures: fixtures)
 
         let flow = SignInFlow(
-            openPassClient: OpenPassClient(
-                configuration: configuration ?? defaultConfiguration
-            ),
+            openPassClient: client ?? OpenPassClient(configuration: OpenPassConfiguration.testConfiguration),
             tokenValidator: tokenValidator,
             redirectHost: "com.openpass",
             isLoggingEnabled: false,
@@ -250,7 +247,7 @@ final class OpenPassManagerTests: XCTestCase {
             XCTAssertEqual(components.host, "auth.myopenpass.com")
             XCTAssertEqual(components.path, "/v1/api/authorize")
 
-            let ignoredQueryItems: Set = ["code_challenge", "device_model", "device_platform", "device_platform_version", "sdk_version"]
+            let ignoredQueryItems: Set = ["code_challenge"]
             let allQueryItemNames = (components.queryItems ?? [])
                 .map(\.name)
             let allQueryItemNamesSet = Set(allQueryItemNames)
@@ -265,16 +262,33 @@ final class OpenPassManagerTests: XCTestCase {
                 .init(name: "client_id", value: "test-client"),
                 .init(name: "code_challenge_method", value: "S256"),
                 .init(name: "device_manufacturer", value: "Apple"),
+                .init(name: "device_model", value: "iPhone"),
+                .init(name: "device_platform", value: "iOS"),
+                .init(name: "device_platform_version", value: "13.0.0"),
                 .init(name: "redirect_uri", value: "com.myopenpass.auth.test-client://com.openpass"),
                 .init(name: "response_type", value: "code"),
                 .init(name: "scope", value: "openid"),
                 .init(name: "sdk_name", value: "openpass-ios-sdk"),
+                .init(name: "sdk_version", value: "1.0.0"),
                 .init(name: "state", value: "state123"),
             ])
 
             return Self.defaultAuthenticationCallbackURL
         }
         let _ = try await _testSignInUXFlow(
+            client: OpenPassClient(
+                baseURL: "https://auth.myopenpass.com/",
+                baseRequestParameters: .init(
+                    sdkName: "openpass-ios-sdk",
+                    sdkVersion: "1.0.0",
+                    devicePlatform: "iOS",
+                    devicePlatformVersion: "13.0.0",
+                    deviceManufacturer: "Apple",
+                    deviceModel: "iPhone"
+                ),
+                clientId: "test-client",
+                isLoggingEnabled: false
+            ),
             authenticationSession: session,
             tokenValidator: IDTokenValidationStub.valid
         )
@@ -290,12 +304,12 @@ final class OpenPassManagerTests: XCTestCase {
             return Self.defaultAuthenticationCallbackURL
         }
         let _ = try await _testSignInUXFlow(
-            configuration: .init(
+            client: OpenPassClient(configuration: .init(
                 clientId: "test-client",
                 redirectHost: "",
                 isLoggingEnabled: false,
                 sdkNameSuffix: "-test-suffix"
-            ),
+            )),
             authenticationSession: session,
             tokenValidator: IDTokenValidationStub.valid
         )

@@ -43,7 +43,9 @@ let package = Package(
             targets: ["OpenPassObjC"]
         )
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.18.0")
+    ],
     targets: [
         .target(
             name: "OpenPass",
@@ -51,7 +53,11 @@ let package = Package(
         ),
         .testTarget(
             name: "OpenPassTests",
-            dependencies: ["OpenPass"],
+            dependencies: [
+                "OpenPass",
+                .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing"),
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+            ],
             resources: [
                 .copy("TestData")
             ]
@@ -72,4 +78,5 @@ let package = Package(
             path: "Tests/ObjCTestHelpers"
         )
     ],
-    swiftLanguageVersions: [.v5])
+    swiftLanguageVersions: [.v5]
+)

@@ -46,8 +46,10 @@ internal final class OpenPassClient {
     convenience init(configuration: OpenPassConfiguration) {
         self.init(
             baseURL: configuration.baseURL,
-            sdkName: configuration.sdkName,
-            sdkVersion: configuration.sdkVersion,
+            baseRequestParameters: BaseRequestParameters(
+                sdkName: configuration.sdkName,
+                sdkVersion: configuration.sdkVersion
+            ),
             clientId: configuration.clientId,
             isLoggingEnabled: configuration.isLoggingEnabled
         )
@@ -55,13 +57,12 @@ internal final class OpenPassClient {
 
     init(
         baseURL: String,
-        sdkName: String,
-        sdkVersion: String = openPassSdkVersion,
+        baseRequestParameters: BaseRequestParameters,
         clientId: String,
         isLoggingEnabled: Bool
     ) {
         self.baseURL = baseURL
-        self.baseRequestParameters = BaseRequestParameters(sdkName: sdkName, sdkVersion: sdkVersion)
+        self.baseRequestParameters = baseRequestParameters
         self.clientId = clientId
         self.log = isLoggingEnabled
             ? .init(subsystem: "com.myopenpass", category: "OpenPassClient")
