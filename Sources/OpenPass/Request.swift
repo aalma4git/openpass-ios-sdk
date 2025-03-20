@@ -31,20 +31,41 @@ enum Method: String {
     case post = "POST"
 }
 
+enum RequestBody {
+    case none
+    case form([URLQueryItem])
+    case json(Encodable)
+}
+
 struct Request<ResponseType> {
     var method: Method
     var path: String
-    var queryItems: [URLQueryItem]
-    var body: Data?
+    var body: RequestBody
 
-    init(path: String, method: Method = .get, queryItems: [URLQueryItem] = [], body: Data? = nil) {
+    init(
+        path: String,
+        method: Method = .get,
+        body: RequestBody = .none
+    ) {
         self.path = path
         self.method = method
-        self.queryItems = queryItems
         self.body = body
     }
 }
 
+// MARK: - Telemetry
+
+extension Request where ResponseType == Void {
+    static func telemetryEvent(
+        _ event: TelemetryEvent
+    ) -> Request {
+        .init(
+            path: "/v1/api/telemetry/sdk_event",
+            method: .post,
+            body: .json(event)
+        )
+    }
+}
 // MARK: - Tokens
 
 extension Request where ResponseType == OpenPassTokensResponse {
@@ -57,13 +78,13 @@ extension Request where ResponseType == OpenPassTokensResponse {
         .init(
             path: "/v1/api/token",
             method: .post,
-            queryItems: [
+            body: .form([
                 .init(name: "client_id", value: clientId),
                 .init(name: "code_verifier", value: codeVerifier),
                 .init(name: "code", value: code),
                 .init(name: "grant_type", value: "authorization_code"),
                 .init(name: "redirect_uri", value: redirectUri)
-            ]
+            ])
         )
     }
 
@@ -74,11 +95,11 @@ extension Request where ResponseType == OpenPassTokensResponse {
         .init(
             path: "/v1/api/token",
             method: .post,
-            queryItems: [
+            body: .form([
                 .init(name: "client_id", value: clientId),
                 .init(name: "grant_type", value: "refresh_token"),
                 .init(name: "refresh_token", value: refreshToken)
-            ]
+            ])
         )
     }
 }
@@ -90,10 +111,10 @@ extension Request where ResponseType == DeviceAuthorizationResponse {
         .init(
             path: "/v1/api/authorize-device",
             method: .post,
-            queryItems: [
+            body: .form([
                 URLQueryItem(name: "client_id", value: clientId),
                 URLQueryItem(name: "scope", value: "openid")
-            ]
+            ])
         )
     }
 }
@@ -106,11 +127,11 @@ extension Request where ResponseType == OpenPassTokensResponse {
         .init(
             path: "/v1/api/device-token",
             method: .post,
-            queryItems: [
+            body: .form([
                 URLQueryItem(name: "client_id", value: clientId),
                 URLQueryItem(name: "device_code", value: deviceCode),
                 URLQueryItem(name: "grant_type", value: "urn:ietf:params:oauth:grant-type:device_code")
-            ]
+            ])
         )
     }
 }

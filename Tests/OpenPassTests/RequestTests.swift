@@ -127,4 +127,65 @@ final class RequestTests: XCTestCase {
             """
         }
     }
+
+    func testEventTelemetryInfo() {
+        let request = Request.telemetryEvent(
+            .init(
+                clientId: "client-id-13",
+                name: "An event",
+                message: "of telemetry",
+                eventType: .info
+            )
+        )
+        assertInlineSnapshot(of: client.urlRequest(request), as: .raw(pretty: true)) {
+            """
+            POST https://auth.myopenpass.com/v1/api/telemetry/sdk_event
+            Content-Type: application/json
+            Device-Manufacturer: Apple
+            Device-Model: iPhone
+            Device-Platform-Version: 18.0
+            Device-Platform: iOS
+            SDK-Name: openpass-ios-sdk
+            SDK-Version: 1.0.0
+
+            {
+              "client_id" : "client-id-13",
+              "event_type" : "info",
+              "message" : "of telemetry",
+              "name" : "An event"
+            }
+            """
+        }
+    }
+
+    func testEventTelemetryError() {
+        let request = Request.telemetryEvent(
+            .init(
+                clientId: "client-id-13",
+                name: "An event",
+                message: "of telemetry",
+                eventType: .error(stackTrace: "something\nhappened\n")
+            )
+        )
+        assertInlineSnapshot(of: client.urlRequest(request), as: .raw(pretty: true)) {
+            #"""
+            POST https://auth.myopenpass.com/v1/api/telemetry/sdk_event
+            Content-Type: application/json
+            Device-Manufacturer: Apple
+            Device-Model: iPhone
+            Device-Platform-Version: 18.0
+            Device-Platform: iOS
+            SDK-Name: openpass-ios-sdk
+            SDK-Version: 1.0.0
+
+            {
+              "client_id" : "client-id-13",
+              "event_type" : "error",
+              "message" : "of telemetry",
+              "name" : "An event",
+              "stack_trace" : "something\nhappened\n"
+            }
+            """#
+        }
+    }
 }

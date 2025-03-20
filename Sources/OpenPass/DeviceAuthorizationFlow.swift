@@ -95,12 +95,24 @@ public final class DeviceAuthorizationFlow {
         // Reset in case the flow is reused
         slowDownMultiplier = 0
 
-        let authorizeDeviceCodeResponse = try await openPassClient.getDeviceCode()
-        switch authorizeDeviceCodeResponse {
-        case .success(let response):
-            return DeviceCode(response: response, now: dateGenerator.now)
-        case .failure(let error):
-            throw OpenPassError.unableToGenerateDeviceCode(name: error.error, description: error.errorDescription)
+        do {
+            let authorizeDeviceCodeResponse = try await openPassClient.getDeviceCode()
+            switch authorizeDeviceCodeResponse {
+            case .success(let response):
+                return DeviceCode(response: response, now: dateGenerator.now)
+            case .failure(let error):
+                throw OpenPassError.unableToGenerateDeviceCode(name: error.error, description: error.errorDescription)
+            }
+        } catch {
+            try? await openPassClient.recordEvent(
+                .init(
+                    clientId: openPassClient.clientId,
+                    name: "device_flow_device_code_failure",
+                    message: "Failed to fetch device code",
+                    eventType: .info
+                )
+            )
+            throw error
         }
     }
 
@@ -118,6 +130,29 @@ public final class DeviceAuthorizationFlow {
             } catch OpenPassError.tokenAuthorizationPending {
                 // Keep polling
                 continue
+            } catch {
+                Task<Void, Never> {
+                    if case OpenPassError.tokenExpired = error {
+                        try? await openPassClient.recordEvent(
+                            .init(
+                                clientId: openPassClient.clientId,
+                                name: "device_flow_token_expired",
+                                message: "Token expired",
+                                eventType: .info
+                            )
+                        )
+                    } else {
+                        try? await openPassClient.recordEvent(
+                            .init(
+                                clientId: openPassClient.clientId,
+                                name: "device_flow_token_failure",
+                                message: "Failed to fetch tokens from device code",
+                                eventType: .error(stackTrace: Thread.formattedCallStackSymbols)
+                            )
+                        )
+                    }
+                }
+                throw error
             }
         }
     }
@@ -158,6 +193,16 @@ public final class DeviceAuthorizationFlow {
         // Verify ID Token
         guard let idToken = openPassTokens.idToken,
               try await verify(idToken) else {
+            Task<Void, Never> {
+                try? await openPassClient.recordEvent(
+                    .init(
+                        clientId: openPassClient.clientId,
+                        name: "device_flow_token_verification_failure",
+                        message: "Token verification failed",
+                        eventType: .error(stackTrace: nil)
+                    )
+                )
+            }
             throw OpenPassError.verificationFailedForOIDCToken
         }
 

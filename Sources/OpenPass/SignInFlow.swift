@@ -93,16 +93,41 @@ public final class SignInFlow {
         }
 
         // Exchange authentication code for tokens
-        let tokenResponse = try await openPassClient.getTokenFromAuthCode(
-            code: code,
-            codeVerifier: codeVerifier,
-            redirectUri: redirectUri
-        )
+        let tokenResponse: OpenPassTokensResponse
+        do {
+            tokenResponse = try await openPassClient.getTokenFromAuthCode(
+                code: code,
+                codeVerifier: codeVerifier,
+                redirectUri: redirectUri
+            )
+        } catch {
+            Task<Void, Never> {
+                try? await openPassClient.recordEvent(
+                    .init(
+                        clientId: openPassClient.clientId,
+                        name: "web_flow_auth_token_failure",
+                        message: "Failed to fetch valid tokens from auth code",
+                        eventType: .error(stackTrace: Thread.formattedCallStackSymbols)
+                    )
+                )
+            }
+            throw error
+        }
         let openPassTokens = try OpenPassTokens(tokenResponse)
 
         // Validate ID Token
         guard let idToken = openPassTokens.idToken,
               try await verify(idToken) else {
+            Task<Void, Never> {
+                try? await openPassClient.recordEvent(
+                    .init(
+                        clientId: openPassClient.clientId,
+                        name: "web_flow_token_verification_failure",
+                        message: "Token verification failed",
+                        eventType: .error(stackTrace: nil)
+                    )
+                )
+            }
             throw OpenPassError.verificationFailedForOIDCToken
         }
 

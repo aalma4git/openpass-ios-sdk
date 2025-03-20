@@ -69,6 +69,19 @@ internal final class OpenPassClient {
             : .disabled
     }
 
+    // MARK: - Telemetry
+
+    /// Record a telemetry event
+    /// `/v1/api/telemetry/sdk_event`
+    /// - Parameters:
+    ///   - event: The event to record
+    func recordEvent(_ event: TelemetryEvent) async throws {
+        let logTag: StaticString = "Telemetry Event"
+        os_log(logTag, log: log, type: .debug)
+        let request = Request.telemetryEvent(event)
+        try await execute(request, String(logTag))
+    }
+
     // MARK: - Tokens
 
     /// Network call to get an ``OpenPassTokens``
@@ -148,17 +161,28 @@ internal final class OpenPassClient {
 
         var urlRequest = URLRequest(url: urlComponents.url!)
         urlRequest.httpMethod = request.method.rawValue
-        if request.method == .get {
-            urlComponents.queryItems = request.queryItems
-        } else if request.method == .post {
+
+        switch request.body {
+        case .none:
+            break
+        case .form(let queryItems):
             urlRequest.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-            urlRequest.httpBody = encodedPostBody(request.queryItems)
+            urlRequest.httpBody = encodedPostBody(queryItems)
+        case .json(let encodable):
+            urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            urlRequest.httpBody = try? Self.encoder().encode(encodable)
         }
 
         baseRequestParameters.asHeaderPairs.forEach { field, value in
             urlRequest.addValue(value, forHTTPHeaderField: field)
         }
         return urlRequest
+    }
+
+    static internal func encoder() -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        return encoder
     }
 
     private func encodedPostBody(_ queryItems: [URLQueryItem]) -> Data {
@@ -168,17 +192,14 @@ internal final class OpenPassClient {
         return Data(query.utf8)
     }
 
-    private func execute<ResponseType: Decodable>(
-        _ request: Request<ResponseType>,
+    private func execute(
+        _ request: URLRequest,
         _ logTag: String
-    ) async throws -> ResponseType {
-        let urlRequest = urlRequest(
-            request
-        )
+    ) async throws -> Data {
         let data: Data
         let response: HTTPURLResponse
         do {
-            (data, response) = try await self.data(for: urlRequest)
+            (data, response) = try await self.data(for: request)
         } catch {
             os_log("Client request error %@", log: log, type: .error, logTag)
             throw error
@@ -186,6 +207,23 @@ internal final class OpenPassClient {
         if response.statusCode != 200 {
             os_log("Client request error (%d) %@", log: log, type: .error, response.statusCode, logTag)
         }
+        return data
+    }
+
+    private func execute(
+        _ request: Request<Void>,
+        _ logTag: String
+    ) async throws {
+        let urlRequest = urlRequest(request)
+        _ = try await execute(urlRequest, logTag)
+    }
+
+    private func execute<ResponseType: Decodable>(
+        _ request: Request<ResponseType>,
+        _ logTag: String
+    ) async throws -> ResponseType {
+        let urlRequest = urlRequest(request)
+        let data = try await execute(urlRequest, logTag)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         do {

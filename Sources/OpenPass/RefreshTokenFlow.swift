@@ -53,16 +53,30 @@ public final class RefreshTokenFlow {
     }
 
     public func refreshTokens(_ refreshToken: String) async throws -> OpenPassTokens {
-        let tokenResponse = try await openPassClient.refreshTokens(refreshToken)
-        let openPassTokens = try OpenPassTokens(tokenResponse)
-        // Validate ID Token
-        guard let idToken = openPassTokens.idToken,
-              try await verify(idToken) else {
-            throw OpenPassError.verificationFailedForOIDCToken
-        }
+        do {
+            let tokenResponse = try await openPassClient.refreshTokens(refreshToken)
+            let openPassTokens = try OpenPassTokens(tokenResponse)
+            // Validate ID Token
+            guard let idToken = openPassTokens.idToken,
+                  try await verify(idToken) else {
+                throw OpenPassError.verificationFailedForOIDCToken
+            }
 
-        await tokensObserver(openPassTokens)
-        return openPassTokens
+            await tokensObserver(openPassTokens)
+            return openPassTokens
+        } catch {
+            Task {
+                try await openPassClient.recordEvent(
+                    .init(
+                        clientId: clientId,
+                        name: "refresh_flow_refresh_failure",
+                        message: "Failed to refresh tokens",
+                        eventType: .error(stackTrace: Thread.callStackSymbols.joined(separator: "\n"))
+                    )
+                )
+            }
+            throw error
+        }
     }
 
     /// Verifies IDToken
