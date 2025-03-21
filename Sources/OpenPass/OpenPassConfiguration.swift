@@ -26,7 +26,7 @@
 
 import Foundation
 
-let openPassSdkVersion = "1.4.0"
+let openPassSdkVersion = "1.4.1"
 
 struct OpenPassConfiguration: Hashable, Sendable {
     static let defaultBaseURL = "https://auth.myopenpass.com/"
