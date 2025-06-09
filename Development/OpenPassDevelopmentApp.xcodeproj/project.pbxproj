@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BF22CC1F2CE3AC89003C0163 /* mailslurp in Frameworks */ = {isa = PBXBuildFile; productRef = BF22CC1E2CE3AC89003C0163 /* mailslurp */; };
-		BF22CC222CE41074003C0163 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = BF22CC212CE41074003C0163 /* SwiftSoup */; };
 		BFEB6D9D2BB2F1E600A1CD75 /* DeviceAuthorizationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFEB6D9C2BB2F1E600A1CD75 /* DeviceAuthorizationViewModel.swift */; };
 		BFFEA4032D3575D500C6502D /* OpenPassTests.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = BFFEA4022D3575D500C6502D /* OpenPassTests.xctestplan */; };
 		E245BA5F293F9C150053DCB2 /* OpenPassTokensView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E245BA5E293F9C150053DCB2 /* OpenPassTokensView.swift */; };
@@ -69,8 +67,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF22CC1F2CE3AC89003C0163 /* mailslurp in Frameworks */,
-				BF22CC222CE41074003C0163 /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -160,8 +156,6 @@
 			);
 			name = OpenPassDevelopmentAppUITests;
 			packageProductDependencies = (
-				BF22CC1E2CE3AC89003C0163 /* mailslurp */,
-				BF22CC212CE41074003C0163 /* SwiftSoup */,
 			);
 			productName = OpenPassDevelopmentAppUITests;
 			productReference = BF4F1F6B2CE2677000D35A5D /* OpenPassDevelopmentAppUITests.xctest */;
@@ -217,8 +211,6 @@
 			);
 			mainGroup = E298110428F9DDC400A6A6E0;
 			packageReferences = (
-				BF22CC1D2CE3AC89003C0163 /* XCRemoteSwiftPackageReference "mailslurp-client-swift" */,
-				BF22CC202CE41074003C0163 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 			);
 			productRefGroup = E298110E28F9DDC400A6A6E0 /* Products */;
 			projectDirPath = "";
@@ -582,36 +574,7 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		BF22CC1D2CE3AC89003C0163 /* XCRemoteSwiftPackageReference "mailslurp-client-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mailslurp/mailslurp-client-swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 15.19.22;
-			};
-		};
-		BF22CC202CE41074003C0163 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.7.6;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
-		BF22CC1E2CE3AC89003C0163 /* mailslurp */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BF22CC1D2CE3AC89003C0163 /* XCRemoteSwiftPackageReference "mailslurp-client-swift" */;
-			productName = mailslurp;
-		};
-		BF22CC212CE41074003C0163 /* SwiftSoup */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BF22CC202CE41074003C0163 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
-			productName = SwiftSoup;
-		};
 		E2E9795928F9E5AE00E46CE8 /* OpenPass */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = OpenPass;

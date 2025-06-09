@@ -24,7 +24,6 @@
 // SOFTWARE.
 //
 
-@preconcurrency import mailslurp
 import XCTest
 
 /// Timeout for page loads.
@@ -44,33 +43,19 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         }
     }
 
-    private var inbox: InboxDto?
-
     override func setUpWithError() throws {
         // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-    }
-
-    override func tearDown() async throws {
-        if let inbox {
-            do {
-                print("Deleting test inbox.")
-                try await MailSlurpClient.withBundleConfiguration().delete(inbox)
-            } catch {
-                print("Error deleting test inbox \(error).")
-            }
-        }
     }
 
     func testMobileSignIn() async throws {
         let app = XCUIApplication()
         app.launch()
 
-        let client = try MailSlurpClient.withBundleConfiguration()
+        let client = try MailSpyClient.withBundleConfiguration()
 
         // Create the email inbox
-        let inbox = try await client.inbox()
-        self.inbox = inbox
+        let inbox = client.inbox()
 
         let devApp = DevApp(app)
         try devApp.signOutButton.waitForExistsInteractive {
@@ -98,11 +83,10 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        let client = try MailSlurpClient.withBundleConfiguration()
+        let client = try MailSpyClient.withBundleConfiguration()
 
         // Create the email inbox
-        let inbox = try await client.inbox()
-        self.inbox = inbox
+        let inbox = client.inbox()
 
         let devApp = DevApp(app)
         try devApp.signOutButton.waitForExistsInteractive {
@@ -151,7 +135,7 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         }
     }
 
-    func signIn(view signInView: SignInView, client: MailSlurpClient, inbox: InboxDto) async throws {
+    func signIn(view signInView: SignInView, client: MailSpyClient, inbox: Inbox) async throws {
         // Ensure the webView is loaded and the email input exists
         // If the user has a cached session, we will eventually tap the signInWithAnotherEmail element.
         do {
@@ -159,10 +143,10 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         } catch {
             // If the email address input does not exist, then it's likely that Chrome already has a previous
             // login session active. We need to click the "Use another email" to clear out the old session
-            signInView.signInWithAnotherEmail.tap()
+            signInView.useAnotherAccount.tap()
         }
 
-        func enterEmailAddress() throws {
+        func submitEmailAddress() throws {
             // Ensure the email input exists
             try signInView.emailInput.waitForExistence {
                 // Now enter the email address of the MailSlurp inbox into the text input
@@ -170,15 +154,15 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
                 $0.tap()
                 $0.typeText(inbox.emailAddress)
             }
+
+            // Click Continue
+            try signInView.emailInputContinue.waitForExistence {
+                $0.tap()
+            }
         }
 
         // Enter the MailSlurp email address
-        try enterEmailAddress()
-
-        // Click Continue
-        try signInView.emailInputContinue.waitForExistence {
-            $0.tap()
-        }
+        try submitEmailAddress()
 
         // For reasons unknown, entering text in the emailInput often fails the first time.
         // In general, the first interaction within a WebView appears to be unreliable.
@@ -186,11 +170,7 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         let errorExists = signInView.emailInputError.waitForExistence(timeout: 5)
         if errorExists {
             // Attempt to enter the email address a final time...
-            try enterEmailAddress()
-            // ...and then tap Continue
-            try signInView.emailInputContinue.waitForExistence {
-                $0.tap()
-            }
+            try submitEmailAddress()
         } else {
             // No error is good, just log that an error was not present.
             print("No error message found.")
@@ -220,8 +200,8 @@ final class SignInView {
         rootElement.buttons["Continue with previously verified email address"]
     }
 
-    var signInWithAnotherEmail: XCUIElement {
-        rootElement.links["Sign In with another email"]
+    var useAnotherAccount: XCUIElement {
+        rootElement.links["Use another account"]
     }
 
     var emailInput: XCUIElement {

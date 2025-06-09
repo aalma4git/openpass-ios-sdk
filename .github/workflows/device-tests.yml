@@ -23,6 +23,9 @@ on:
       device-auth-client-id:
         default: '51c42041a7de48f59bff4f8a8a6ad18b'
         type: string
+      mail-spy-environment:
+        default: 'production'
+        type: string
     secrets:
       READ_ONLY_CONTENT_APP_PRIVATE_KEY:
         required: true
@@ -32,7 +35,7 @@ on:
         required: true
       BROWSERSTACK_ACCESS_KEY:
         required: true
-      MAIL_SLURP_API_KEY:
+      MAIL_SPY_API_KEY:
         required: true
       CHECKOUT_TOKEN:
         required: false
@@ -71,10 +74,16 @@ jobs:
       - name: Configure Info.plist
         run: plutil -insert OpenPassBaseURL -string '${{ inputs.environment }}' Development/OpenPassDevelopmentApp/Info.plist
 
-      - name: Populate Mailslurp configuration file for Test Runner
+      - name: Populate MailSpy configuration file for Test Runner
         env:
-          MAIL_SLURP_API_KEY: ${{ secrets.MAIL_SLURP_API_KEY }}
-        run: jq --arg key "$MAIL_SLURP_API_KEY" '.mailslurpApiKey = $key' Development/OpenPassDevelopmentAppUITests/configuration.json.tpl > Development/OpenPassDevelopmentAppUITests/configuration.json
+          MAIL_SPY_API_KEY: ${{ secrets.MAIL_SPY_API_KEY }}
+          MAIL_SPY_ENVIRONMENT: ${{ inputs.mail-spy-environment }}
+        run: |
+          jq \
+            --arg key "$MAIL_SPY_API_KEY" \
+            --arg env "$MAIL_SPY_ENVIRONMENT" \
+            '.mailSpyApiKey = $key | .mailSpyEnvironment = $env' \
+            Development/OpenPassDevelopmentAppUITests/configuration.json.tpl > Development/OpenPassDevelopmentAppUITests/configuration.json
 
       - name: Create working directory
         run: mkdir -p build/derived-data
