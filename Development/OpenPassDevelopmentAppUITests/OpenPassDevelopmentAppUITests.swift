@@ -185,6 +185,14 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         try signInView.codeInput.waitForExistence { _ in
             signInView.enterCode(code)
         }
+
+        try signInView.consentAgreeButton.waitForExistence {
+            $0.tap()
+        }
+
+        try signInView.passKeysSkipButton.waitForExistence {
+            $0.tap()
+        }
     }
 }
 
@@ -219,6 +227,14 @@ final class SignInView {
     /// OTP Code Input suitable for testing existence
     var codeInput: XCUIElement {
         codeInput(for: 5)
+    }
+
+    var consentAgreeButton: XCUIElement {
+        rootElement.buttons["Agree and continue"]
+    }
+
+    var passKeysSkipButton: XCUIElement {
+        rootElement.buttons["No thanks"]
     }
 
     func enterCode(_ code: String) {
