@@ -111,7 +111,7 @@ final class OpenPassDevelopmentAppUITests: XCTestCase {
         }
 
         // Confirm that we want to sign in for the 'device'
-        let acceptButton = safari.buttons["Accept device registration and continue"]
+        let acceptButton = safari.buttons["Confirm"]
         try acceptButton.waitForExistence {
             $0.tap()
         }
