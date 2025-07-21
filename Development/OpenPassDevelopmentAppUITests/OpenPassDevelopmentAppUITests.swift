@@ -234,7 +234,7 @@ final class SignInView {
     }
 
     var passKeysSkipButton: XCUIElement {
-        rootElement.buttons["No thanks"]
+        rootElement.buttons["Not now"]
     }
 
     func enterCode(_ code: String) {
