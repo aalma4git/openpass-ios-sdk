@@ -42,6 +42,7 @@ extension IDTokenObjC {
         expirationTime: Int,
         issuedTime: Int,
         email: String? = nil,
+        emailVerified: Bool = true,
         givenName: String? = nil,
         familyName: String? = nil
     ) {
@@ -56,6 +57,7 @@ extension IDTokenObjC {
             expirationTime: Int64(expirationTime),
             issuedTime: Int64(issuedTime),
             email: email,
+            emailVerified: emailVerified,
             givenName: givenName,
             familyName: familyName
         )

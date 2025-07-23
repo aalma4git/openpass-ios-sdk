@@ -117,6 +117,7 @@ final class OpenPassClientTests: XCTestCase {
                     expirationTime: 1674408060,
                     issuedTime: 1671816060,
                     email: "foo@bar.com",
+                    emailVerified: true,
                     givenName: "John",
                     familyName: "Doe"
                 ),

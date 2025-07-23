@@ -49,6 +49,7 @@
                                     expirationTime:1674408060
                                         issuedTime:1671816060
                                              email:@"foo@bar.com"
+                                     emailVerified:YES
                                          givenName:@"John"
                                         familyName:@"Doe"];
 }

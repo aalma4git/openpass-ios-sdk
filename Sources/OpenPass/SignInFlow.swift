@@ -53,12 +53,16 @@ public final class SignInFlow {
 
     /// Client specific redirect host
     private let redirectHost: String
+    
+    /// Whether to allow unverified email addresses during sign-in
+    private let allowUnverifiedEmail: Bool
 
     init(
         openPassClient: OpenPassClient,
         tokenValidator: IDTokenValidation,
         redirectHost: String,
         isLoggingEnabled: Bool,
+        allowUnverifiedEmail: Bool = false,
         authenticationSession: AuthenticationSession = WebAuthenticationSession(),
         authenticationStateGenerator: RandomStringGenerator = .init { randomString(length: 32) },
         tokensObserver: @escaping ((OpenPassTokens) async -> Void)
@@ -66,6 +70,7 @@ public final class SignInFlow {
         self.openPassClient = openPassClient
         self.tokenValidator = tokenValidator
         self.redirectHost = redirectHost
+        self.allowUnverifiedEmail = allowUnverifiedEmail
         self.log = isLoggingEnabled
             ? .init(subsystem: "com.myopenpass", category: "SignInFlow")
             : .disabled
@@ -83,7 +88,8 @@ public final class SignInFlow {
         let url = try openPassClient.authorizeUrl(
             redirectUri: redirectUri,
             codeVerifier: codeVerifier,
-            authorizeState: authorizeState
+            authorizeState: authorizeState,
+            allowUnverifiedEmail: allowUnverifiedEmail
         )
 
         // Authenticate and validate callback

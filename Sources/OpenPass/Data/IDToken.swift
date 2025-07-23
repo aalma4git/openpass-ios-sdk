@@ -66,6 +66,9 @@ public struct IDToken: Hashable, Codable, Sendable {
     /// Email address provided by user
     public let email: String?
 
+    /// Email verification status 
+    public let emailVerified: Bool
+
     /// Given name provided by user
     public let givenName: String?
 
@@ -104,6 +107,7 @@ extension IDToken {
 
         // optional
         let email = payload["email"] as? String
+        let emailVerified = payload["email_verified"] as? Bool ?? true
         let givenName = payload["given_name"] as? String
         let familyName = payload["family_name"] as? String
 
@@ -118,6 +122,7 @@ extension IDToken {
             expirationTime: expirationTime,
             issuedTime: issuedTime,
             email: email,
+            emailVerified: emailVerified,
             givenName: givenName,
             familyName: familyName
         )

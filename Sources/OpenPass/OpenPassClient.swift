@@ -247,7 +247,8 @@ extension OpenPassClient {
     func authorizeUrl(
         redirectUri: String,
         codeVerifier: String,
-        authorizeState: String
+        authorizeState: String,
+        allowUnverifiedEmail: Bool = false
     ) throws -> URL {
         let challengeHashString = generateCodeChallengeFromVerifierCode(verifier: codeVerifier)
 
@@ -263,8 +264,10 @@ extension OpenPassClient {
             URLQueryItem(name: "scope", value: "openid"),
             URLQueryItem(name: "state", value: authorizeState),
             URLQueryItem(name: "code_challenge_method", value: "S256"),
-            URLQueryItem(name: "code_challenge", value: challengeHashString)
+            URLQueryItem(name: "code_challenge", value: challengeHashString),
+            URLQueryItem(name: "allow_unverified_email", value: String(allowUnverifiedEmail))
         ]
+        
         components.queryItems?.append(contentsOf: baseRequestParameters.asQueryItems)
         guard let url = components.url else {
             throw OpenPassError.authorizationUrl

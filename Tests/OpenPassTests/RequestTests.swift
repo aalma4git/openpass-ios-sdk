@@ -188,4 +188,35 @@ final class RequestTests: XCTestCase {
             """#
         }
     }
+    
+    func testAuthorizeUrlWithAllowUnverifiedEmail() throws {
+        let url = try client.authorizeUrl(
+            redirectUri: "com.myopenpass.auth.test-client://com.openpass",
+            codeVerifier: "test-code-verifier-123",
+            authorizeState: "test-state-456",
+            allowUnverifiedEmail: true
+        )
+        
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        XCTAssertEqual(components?.scheme, "https")
+        XCTAssertEqual(components?.host, "auth.myopenpass.com")
+        XCTAssertEqual(components?.path, "/v1/api/authorize")
+        
+        let queryItems = components?.queryItems ?? []
+        let allowUnverifiedEmailItem = queryItems.first { $0.name == "allow_unverified_email" }
+        XCTAssertEqual(allowUnverifiedEmailItem?.value, "true")
+    }
+    
+    func testAuthorizeUrlWithoutAllowUnverifiedEmail() throws {
+        let url = try client.authorizeUrl(
+            redirectUri: "com.myopenpass.auth.test-client://com.openpass",
+            codeVerifier: "test-code-verifier-123",
+            authorizeState: "test-state-456"
+        )
+        
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        let queryItems = components?.queryItems ?? []
+        let allowUnverifiedEmailItem = queryItems.first { $0.name == "allow_unverified_email" }
+        XCTAssertEqual(allowUnverifiedEmailItem?.value, "false", "allow_unverified_email should default to false when not specified")
+    }
 }

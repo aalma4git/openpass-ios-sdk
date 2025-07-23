@@ -259,6 +259,7 @@ final class OpenPassManagerTests: XCTestCase {
                 .filter { !ignoredQueryItems.contains($0.name) }
                 .sorted { $0.name < $1.name }
             XCTAssertEqual(queryItems, [
+                .init(name: "allow_unverified_email", value: "false"),
                 .init(name: "client_id", value: "test-client"),
                 .init(name: "code_challenge_method", value: "S256"),
                 .init(name: "device_manufacturer", value: "Apple"),
