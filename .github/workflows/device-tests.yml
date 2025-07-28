@@ -54,7 +54,11 @@ jobs:
           token: ${{ secrets.CHECKOUT_TOKEN || github.token }}
 
       - name: Select Xcode 16.3
-        run: sudo xcode-select -s /Applications/Xcode_16.3.app
+        run: |
+          echo "Current PATH: $PATH"
+          which xcode-select
+          ls -la ./xcode-select 2>/dev/null || echo "Local script not found or not executable"
+          sudo xcode-select -s /Applications/Xcode_16.3.app
 
       - name: Authenticate using GitHub App
         id: auth
