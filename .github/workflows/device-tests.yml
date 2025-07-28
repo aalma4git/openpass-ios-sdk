@@ -48,7 +48,7 @@ jobs:
         with:
           # We need to force this repository, otherwise when workflow is called from other repos,
           # it inherits the context of that repo.
-          repository: 'openpass-sso/openpass-ios-sdk'
+          # repository: 'openpass-sso/openpass-ios-sdk'
           ref: ${{ inputs.ref }}
           path: ${{ inputs.working-directory }}
           token: ${{ secrets.CHECKOUT_TOKEN || github.token }}
