@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "custom xcode-select executed!"
+env
+
+# Execute real xcode-select
+exec /usr/bin/xcode-select "$@" 
