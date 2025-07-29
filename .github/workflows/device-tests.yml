@@ -56,11 +56,9 @@ jobs:
       - name: Select Xcode 16.3
         run: |
           echo "Current working directory: $(pwd)"
-          echo "Files in current directory:"
-          ls -la
-          echo "Checking xcode-select script:"
-          ls -la ./xcode-select 2>/dev/null || echo "Script not found"
-          file ./xcode-select 2>/dev/null || echo "Cannot check file type"
+          which xcode-select
+          which sudo
+          sudo xcode-select -s /Applications/Xcode_16.3.app
 
       - name: Authenticate using GitHub App
         id: auth
