@@ -54,7 +54,13 @@ jobs:
           token: ${{ secrets.CHECKOUT_TOKEN || github.token }}
 
       - name: Select Xcode 16.3
-        run: sudo xcode-select -s /Applications/Xcode_16.3.app
+        run: |
+          echo "Current working directory: $(pwd)"
+          echo "Files in current directory:"
+          ls -la
+          echo "Checking xcode-select script:"
+          ls -la ./xcode-select 2>/dev/null || echo "Script not found"
+          file ./xcode-select 2>/dev/null || echo "Cannot check file type"
 
       - name: Authenticate using GitHub App
         id: auth
